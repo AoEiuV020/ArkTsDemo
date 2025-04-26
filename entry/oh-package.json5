@@ -5,6 +5,8 @@
   "main": "",
   "author": "",
   "license": "",
-  "dependencies": {}
+  "dependencies": {
+    json_rpc_2: "file:../json_rpc_2"
+  }
 }
 

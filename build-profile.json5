@@ -72,6 +72,10 @@
           ]
         }
       ]
+    },
+    {
+      "name": "library1",
+      "srcPath": "./library1",
     }
   ]
 }

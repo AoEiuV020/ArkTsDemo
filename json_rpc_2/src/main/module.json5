@@ -1,0 +1,11 @@
+{
+  "module": {
+    "name": "json_rpc_2",
+    "type": "har",
+    "deviceTypes": [
+      "default",
+      "tablet",
+      "2in1"
+    ]
+  }
+}

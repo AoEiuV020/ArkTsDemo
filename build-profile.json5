@@ -36,6 +36,10 @@
           ]
         }
       ]
+    },
+    {
+      "name": "json_rpc_2",
+      "srcPath": "./json_rpc_2"
     }
   ]
 }

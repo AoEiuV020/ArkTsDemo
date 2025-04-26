@@ -1,0 +1,5 @@
+{
+  "libapplication1.so": {
+    "source": "src/mock/Libapplication1.mock.ets"
+  }
+}

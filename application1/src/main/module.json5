@@ -1,0 +1,28 @@
+{
+  "module": {
+    "name": "application1",
+    "type": "feature",
+    "description": "$string:module_desc",
+    "mainElement": "Application1Ability",
+    "deviceTypes": [
+      "phone",
+      "tablet",
+      "2in1"
+    ],
+    "deliveryWithInstall": true,
+    "installationFree": false,
+    "pages": "$profile:main_pages",
+    "abilities": [
+      {
+        "name": "Application1Ability",
+        "srcEntry": "./ets/application1ability/Application1Ability.ets",
+        "description": "$string:Application1Ability_desc",
+        "icon": "$media:layered_image",
+        "label": "$string:Application1Ability_label",
+        "startWindowIcon": "$media:startIcon",
+        "startWindowBackground": "$color:start_window_background",
+        "exported": true
+      }
+    ]
+  }
+}

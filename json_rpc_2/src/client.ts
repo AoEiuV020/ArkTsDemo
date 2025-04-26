@@ -12,7 +12,7 @@ import {
 import { DefaultErrorCode } from './internal';
 
 export type SendRequest<ClientParams> = (
-  payload: any,
+  payload: object,
   clientParams: ClientParams
 ) => PromiseLike<void> | void;
 

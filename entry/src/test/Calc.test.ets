@@ -4,7 +4,8 @@ import { add } from 'library';
 export default function calcTest() {
   describe('calcTest', () => {
     it('add', 0, () => {
-      console.log(add(1, 3).toString());
+      const result = add(1, 2);
+      console.log(result.toString());
     });
   });
 }

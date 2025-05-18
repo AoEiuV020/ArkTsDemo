@@ -2,7 +2,7 @@
   "name": "library",
   "version": "1.0.0",
   "description": "Please describe the basic information.",
-  "main": "Index.ets",
+  "main": "index.ts",
   "author": "",
   "license": "Apache-2.0",
   "packageType": "InterfaceHar",

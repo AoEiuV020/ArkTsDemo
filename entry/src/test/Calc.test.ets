@@ -1,10 +1,18 @@
 import { describe, it } from '@ohos/hypium';
-import { add } from 'library';
+import { add, decrease, minus } from 'library';
 
 export default function calcTest() {
   describe('calcTest', () => {
     it('add', 0, () => {
       const result = add(1, 2);
+      console.log(result.toString());
+    });
+    it('minus', 0, () => {
+      const result = minus(1, 2);
+      console.log(result.toString());
+    });
+    it('decrease', 0, () => {
+      const result = decrease(1);
       console.log(result.toString());
     });
   });

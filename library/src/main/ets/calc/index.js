@@ -5,3 +5,5 @@ export function add(a, b) {
 export function decrease(a) {
     return minus(a, 1);
 }
+
+export { decrease2 } from './decrease2'

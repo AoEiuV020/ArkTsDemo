@@ -32,7 +32,7 @@ struct Index {
 
         Button('-1')
           .onClick(() => {
-            this.count = this.counter.decrement();
+            this.count = globalThis.minus(this.count, 1)
           })
 
         Button('重置')

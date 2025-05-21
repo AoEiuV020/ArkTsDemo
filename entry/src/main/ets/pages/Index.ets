@@ -1,4 +1,4 @@
-import { StringUtils } from 'library';
+import { Calc, StringUtils } from 'library';
 import { Counter } from 'library1';
 
 @Entry
@@ -32,7 +32,7 @@ struct Index {
 
         Button('-1')
           .onClick(() => {
-            this.count = globalThis.minus(this.count, 1)
+            this.count = Calc.minus(this.count, 1)
           })
 
         Button('重置')

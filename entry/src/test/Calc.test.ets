@@ -11,6 +11,10 @@ export default function calcTest() {
       const result = Calc.minus(1, 2);
       console.log(result.toString());
     });
+    it('increase', 0, () => {
+      const result = Calc.increase(1);
+      console.log(result.toString());
+    });
     it('decrease', 0, () => {
       const result = Calc.decrease(1);
       console.log(result.toString());

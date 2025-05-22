@@ -26,7 +26,7 @@ struct Index {
       Row() {
         Button('+1')
           .onClick(() => {
-            this.count = this.counter.increment();
+            this.count = Calc.increase(this.count);
           })
           .margin({ right: 20 })
 

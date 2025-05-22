@@ -1,7 +1,7 @@
-import { Counter } from 'library1/src/main/ets/counter/counter';
+import { Calc } from '.';
 
 export function increase(a: number): number {
-  const counter = new Counter();
+  const counter = new Calc.Counter();
   counter.increment();
   return a + counter.getCurrentCount();
 }

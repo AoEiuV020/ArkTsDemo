@@ -1,7 +1,7 @@
-import { Calc } from '.';
+import { Counter } from 'library1';
 
 export function increase(a: number): number {
-  const counter = new Calc.Counter();
+  const counter = new Counter();
   counter.increment();
   return a + counter.getCurrentCount();
 }

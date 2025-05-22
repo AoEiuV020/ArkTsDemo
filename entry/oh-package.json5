@@ -5,6 +5,8 @@
   "main": "",
   "author": "",
   "license": "",
-  "dependencies": {}
+  "dependencies": {
+    "ts-secure-utils": "file:../../ts-secure-utils"
+  }
 }
 

@@ -40,6 +40,10 @@
     {
       "name": "ts_secure_utils",
       "srcPath": "../ts-secure-utils"
+    },
+    {
+      "name": "forge",
+      "srcPath": "../forge"
     }
   ]
 }

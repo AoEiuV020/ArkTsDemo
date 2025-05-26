@@ -1,12 +1,12 @@
 {
-  "name": "entry",
+  "name": "http",
   "version": "1.0.0",
   "description": "Please describe the basic information.",
-  "main": "",
+  "main": "Index.ets",
   "author": "",
-  "license": "",
+  "license": "Apache-2.0",
   "dependencies": {
-    "http": "file:../http"
+    "@ohos/axios": "^2.2.6"
   },
   "devDependencies": {},
   "dynamicDependencies": {}

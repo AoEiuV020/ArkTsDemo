@@ -1,8 +1,21 @@
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from '@ohos/axios';
 
+// 定义UA接口返回的数据类型
+export interface UaResponse {
+  code: number;
+  msg: string;
+  data: {
+    address: string;
+    browser: string;
+    browserVersion: string;
+    deviceType: string;
+    ip: string;
+    os: string;
+  };
+}
+
 export class HttpClient {
   private instance = axios.create({
-    baseURL: '/api',
     timeout: 10000,
     headers: {
       'Content-Type': 'application/json',
@@ -72,5 +85,10 @@ export class HttpClient {
 
   delete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
     return this.instance.delete(url, config);
+  }
+
+  // 获取UA信息的方法
+  async getUserAgentInfo(): Promise<UaResponse> {
+    return this.get<UaResponse>('https://v2.xxapi.cn/api/ua');
   }
 }

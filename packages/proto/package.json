@@ -1,0 +1,25 @@
+{
+  "name": "proto",
+  "version": "1.0.0",
+  "description": "proto",
+  "main": "index.ts",
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "test": "jest --config jest.config.json",
+    "test:watch": "jest --config jest.config.json --watch",
+    "test:coverage": "jest --config jest.config.json --coverage",
+    "pretty": "prettier --write \"./**/*.{js,jsx,mjs,cjs,ts,tsx,json}\"",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "devDependencies": {
+    "ts-node": "*",
+    "@types/jest": "*",
+    "@types/node": "*",
+    "jest": "*",
+    "ts-jest": "*",
+    "typescript": "*"
+  },
+  "dependencies": {
+  }
+}

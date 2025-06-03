@@ -1,5 +1,30 @@
 {
-  "dependencies": {
-    "@arkts/declarations": "^0.0.15"
-  }
+  "name": "ohos-im-monorepo",
+  "version": "1.0.0",
+  "description": "HarmonyOS IM project monorepo",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "build:watch": "npm run build:watch --workspaces",
+    "test": "npm run test --workspaces",
+    "test:watch": "npm run test:watch --workspaces",
+    "test:coverage": "npm run test:coverage --workspaces",
+    "pretty": "prettier --write \"./**/*.{js,jsx,mjs,cjs,ts,tsx,json}\"",
+    "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
+    "type-check": "tsc --noEmit",
+    "bootstrap": "npm install"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "@types/jest": "^29.5.12",
+    "@types/node": "^22.15.21",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.3.3",
+    "prettier": "^3.0.0"
+  },
+  "dependencies": {}
 }

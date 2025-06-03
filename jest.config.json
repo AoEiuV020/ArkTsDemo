@@ -1,0 +1,29 @@
+{
+  "preset": "ts-jest",
+  "testEnvironment": "node",
+  "projects": ["<rootDir>/packages/*/jest.config.json"],
+  "collectCoverageFrom": [
+    "packages/*/src/**/*.ts",
+    "!packages/*/src/**/*.d.ts",
+    "!packages/*/src/**/*.test.ts",
+    "!packages/*/src/test/**",
+    "!packages/*/src/main/**",
+    "!packages/*/src/ohosTest/**"
+  ],
+  "coverageDirectory": "<rootDir>/coverage",
+  "coverageReporters": ["text", "lcov", "html"],
+  "moduleNameMapper": {
+    "^@/(.*)$": "<rootDir>/src/$1",
+    "^@packages/(.*)$": "<rootDir>/packages/$1"
+  },
+  "testMatch": ["**/packages/**/__tests__/**/*.test.ts", "**/packages/**/?(*.)+(spec|test).ts"],
+  "testPathIgnorePatterns": [
+    "/node_modules/",
+    "/oh_modules/",
+    "/dist/",
+    "/build/",
+    "/src/test/",
+    "/src/main/",
+    "/src/ohosTest/"
+  ]
+}

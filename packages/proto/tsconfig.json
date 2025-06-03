@@ -1,0 +1,20 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./",
+    "noEmit": false
+  },
+  "include": ["src/**/*", "index.ts", "__tests__/**/*"],
+  "exclude": [
+    "node_modules",
+    "oh_modules",
+    "dist",
+    "build",
+    "coverage",
+    "examples",
+    "src/test",
+    "src/main",
+    "src/ohosTest"
+  ]
+}

@@ -3,6 +3,7 @@ import * as $protobuf from "@ohos/protobufjs";
 import Long from 'long';
 $protobuf.util.Long=Long
 $protobuf.configure()
+
 // Common aliases
 const $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.util;
 

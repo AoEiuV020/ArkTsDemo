@@ -17,7 +17,8 @@
   ],
   "extensionsToTreatAsEsm": [".ts"],  "moduleNameMapper": {
     "^@/(.*)$": "<rootDir>/src/$1",
-    "^@packages/(.*)$": "<rootDir>/../$1"
+    "^@packages/(.*)$": "<rootDir>/../$1",
+    "^@ohos/protobufjs$": "protobufjs"
   },
   "collectCoverageFrom": [
     "src/**/*.ts",

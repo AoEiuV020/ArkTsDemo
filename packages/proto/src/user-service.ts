@@ -41,18 +41,17 @@ export class UserService {
   static userToObject(userObj: user.User): IUser {
     return user.User.toObject(userObj);
   }
-
   /**
    * 从JSON创建用户
    */
-  static fromJSON(json: any): user.User {
+  static fromJSON(json: Record<string, Object>): user.User {
     return user.User.fromObject(json);
   }
 
   /**
    * 用户转换为JSON
    */
-  static toJSON(userObj: user.User): any {
+  static toJSON(userObj: user.User): Record<string, Object> {
     return user.User.toObject(userObj, {
       longs: String,
       enums: String,
@@ -114,11 +113,10 @@ export class UserService {
   static longTestMessageToObject(message: user.LongTestMessage): ILongTestMessage {
     return user.LongTestMessage.toObject(message);
   }
-
   /**
    * Long测试消息转换为JSON
    */
-  static longTestMessageToJSON(message: user.LongTestMessage): any {
+  static longTestMessageToJSON(message: user.LongTestMessage): Record<string, Object> {
     return user.LongTestMessage.toObject(message, {
       longs: String,
       enums: String,

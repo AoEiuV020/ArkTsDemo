@@ -1,5 +1,4 @@
 import { UserService, UserRole, IUser } from '../src/user-service';
-import { user } from '../src/user-service';
 
 describe('UserService Protobuf Tests', () => {
   const mockUserData: IUser = {
@@ -53,10 +52,8 @@ describe('UserService Protobuf Tests', () => {
         tags: ['developer', 'typescript', 'protobuf'],
         role: UserRole.USER
       }));
-    });
-
-    test('should create user from JSON', () => {
-      const jsonData = {
+    });    test('should create user from JSON', () => {
+      const jsonData: Record<string, Object> = {
         id: 2,
         name: 'Jane Smith',
         email: 'jane@example.com',

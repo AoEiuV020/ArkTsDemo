@@ -1,4 +1,4 @@
-import * as $protobuf from "protobufjs";
+import * as $protobuf from "@ohos/protobufjs";
 import Long = require("long");
 /** Namespace user. */
 export namespace user {

@@ -5,5 +5,10 @@
   "main": "index.ts",
   "author": "",
   "license": "Apache-2.0",
-  "dependencies": {}
+  "dependencies": {
+    "@ohos/protobufjs": "2.0.1",
+    "long": "^5.2.1"
+  },
+  "devDependencies": {},
+  "dynamicDependencies": {}
 }

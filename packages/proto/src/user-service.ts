@@ -7,6 +7,7 @@ export type IUserListRequest = user.IUserListRequest;
 export type IUserListResponse = user.IUserListResponse;
 export type ICreateUserRequest = user.ICreateUserRequest;
 export type ICommonResponse = user.ICommonResponse;
+export type ILongTestMessage = user.ILongTestMessage;
 
 // 用户角色枚举
 export const UserRole = user.UserRole;
@@ -79,11 +80,49 @@ export class UserService {
   static createCreateUserRequest(data: ICreateUserRequest): user.CreateUserRequest {
     return user.CreateUserRequest.create(data);
   }
-
   /**
    * 创建通用响应
    */
   static createCommonResponse(data: ICommonResponse): user.CommonResponse {
     return user.CommonResponse.create(data);
+  }
+
+  /**
+   * 创建Long类型测试消息
+   */
+  static createLongTestMessage(data: ILongTestMessage): user.LongTestMessage {
+    return user.LongTestMessage.create(data);
+  }
+
+  /**
+   * 编码Long测试消息为二进制数据
+   */
+  static encodeLongTestMessage(message: user.LongTestMessage): Uint8Array {
+    return user.LongTestMessage.encode(message).finish();
+  }
+
+  /**
+   * 从二进制数据解码Long测试消息
+   */
+  static decodeLongTestMessage(buffer: Uint8Array): user.LongTestMessage {
+    return user.LongTestMessage.decode(buffer);
+  }
+
+  /**
+   * Long测试消息转换为普通对象
+   */
+  static longTestMessageToObject(message: user.LongTestMessage): ILongTestMessage {
+    return user.LongTestMessage.toObject(message);
+  }
+
+  /**
+   * Long测试消息转换为JSON
+   */
+  static longTestMessageToJSON(message: user.LongTestMessage): any {
+    return user.LongTestMessage.toObject(message, {
+      longs: String,
+      enums: String,
+      bytes: String,
+    });
   }
 }

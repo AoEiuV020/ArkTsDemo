@@ -1,4 +1,5 @@
 import { UserService, UserRole, IUser } from '../src/user-service';
+import { user } from '../src/user-service';
 
 describe('UserService Protobuf Tests', () => {
   const mockUserData: IUser = {
@@ -213,8 +214,106 @@ describe('UserService Protobuf Tests', () => {
       expect(decoded.email).toBe('');
       expect(decoded.age).toBe(0);
       expect(decoded.isActive).toBe(false);
-      expect(decoded.tags).toEqual([]);
-      expect(decoded.role).toBe(UserRole.UNKNOWN);
+      expect(decoded.tags).toEqual([]);      expect(decoded.role).toBe(UserRole.UNKNOWN);
+    });
+  });
+
+  describe('Long Type Tests', () => {
+    test('should create and handle LongTestMessage with basic values', () => {
+      const longTestData = {
+        signedLong: 123456789012345,
+        unsignedLong: 987654321098765,
+        longArray: [111111111111, 222222222222, 333333333333]
+      };
+
+      const longTestMessage = UserService.createLongTestMessage(longTestData);
+      
+      expect(longTestMessage.signedLong).toBeDefined();
+      expect(longTestMessage.unsignedLong).toBeDefined();
+      expect(longTestMessage.longArray).toHaveLength(3);
+    });
+
+    test('should encode and decode LongTestMessage', () => {
+      const longTestData = {
+        signedLong: -123456789012345,
+        unsignedLong: 987654321098765,
+        longArray: [111111111111, 222222222222, 333333333333]
+      };
+
+      const longTestMessage = UserService.createLongTestMessage(longTestData);
+      const encoded = UserService.encodeLongTestMessage(longTestMessage);
+      const decoded = UserService.decodeLongTestMessage(encoded);
+
+      expect(decoded.signedLong).toBeDefined();
+      expect(decoded.unsignedLong).toBeDefined();
+      expect(decoded.longArray).toHaveLength(3);
+    });
+
+    test('should convert LongTestMessage to object and JSON', () => {
+      const longTestData = {
+        signedLong: 123456789012345,
+        unsignedLong: 987654321098765,
+        longArray: [111111111111, 222222222222]
+      };
+
+      const longTestMessage = UserService.createLongTestMessage(longTestData);
+      const plainObj = UserService.longTestMessageToObject(longTestMessage);
+      const jsonObj = UserService.longTestMessageToJSON(longTestMessage);
+
+      expect(plainObj).toBeDefined();
+      expect(plainObj.signedLong).toBeDefined();
+      expect(plainObj.unsignedLong).toBeDefined();
+      expect(plainObj.longArray).toHaveLength(2);
+
+      expect(jsonObj).toBeDefined();
+      expect(typeof jsonObj.signedLong).toBe('string'); // Long转换为字符串
+      expect(typeof jsonObj.unsignedLong).toBe('string');
+    });
+
+    test('should handle empty long array', () => {
+      const longTestData = {
+        signedLong: 0,
+        unsignedLong: 0,
+        longArray: []
+      };
+
+      const longTestMessage = UserService.createLongTestMessage(longTestData);
+      const encoded = UserService.encodeLongTestMessage(longTestMessage);
+      const decoded = UserService.decodeLongTestMessage(encoded);
+
+      expect(decoded.longArray).toEqual([]);
+    });
+
+    test('should handle large long values', () => {
+      const longTestData = {
+        signedLong: Number.MAX_SAFE_INTEGER,
+        unsignedLong: Number.MAX_SAFE_INTEGER,
+        longArray: [Number.MAX_SAFE_INTEGER, -Number.MAX_SAFE_INTEGER]
+      };
+
+      const longTestMessage = UserService.createLongTestMessage(longTestData);
+      
+      expect(longTestMessage).toBeDefined();
+      expect(longTestMessage.longArray).toHaveLength(2);
+    });
+  });
+
+  describe('User with Long timestamps', () => {
+    test('should handle user with timestamp fields', () => {
+      const userData = {
+        ...mockUserData,
+        createdTimestamp: Date.now(),
+        lastLoginTimestamp: Date.now() - 86400000, // 1 day ago
+        userTokenId: 999999999999999
+      };
+      
+      const userObj = UserService.createUser(userData);
+      const encoded = UserService.encodeUser(userObj);
+      const decoded = UserService.decodeUser(encoded);
+
+      expect(decoded.createdTimestamp).toBeDefined();
+      expect(decoded.lastLoginTimestamp).toBeDefined();
+      expect(decoded.userTokenId).toBeDefined();
     });
   });
 });

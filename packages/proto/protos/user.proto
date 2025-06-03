@@ -11,6 +11,10 @@ message User {
   bool is_active = 5;
   repeated string tags = 6;
   UserRole role = 7;
+  // 添加long类型字段
+  int64 created_timestamp = 8;
+  int64 last_login_timestamp = 9;
+  uint64 user_token_id = 10;
 }
 
 // 用户角色枚举
@@ -50,4 +54,11 @@ message CommonResponse {
   bool success = 1;
   string message = 2;
   int32 code = 3;
+}
+
+// Long类型测试消息
+message LongTestMessage {
+  int64 signed_long = 1;     // 有符号64位整数
+  uint64 unsigned_long = 2;  // 无符号64位整数
+  repeated int64 long_array = 3; // long数组
 }

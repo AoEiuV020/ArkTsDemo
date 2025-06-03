@@ -1,11 +1,23 @@
 {
-  "preset": "ts-jest",
-  "testEnvironment": "node",
+  "preset": "ts-jest/presets/default-esm",
+  "testEnvironment": "node",  
   "displayName": "proto",
   "roots": ["<rootDir>/src", "<rootDir>/__tests__"],
   "testMatch": ["**/__tests__/**/*.test.ts", "**/?(*.)+(spec|test).ts"],
   "transform": {
-    "^.+\\.ts$": "ts-jest"
+    "^.+\\.ts$": ["ts-jest", {
+      "useESM": true
+    }],
+    "^.+\\.js$": ["ts-jest", {
+      "useESM": true
+    }]
+  },
+  "transformIgnorePatterns": [
+    "node_modules/(?!(protobufjs)/)"
+  ],
+  "extensionsToTreatAsEsm": [".ts"],  "moduleNameMapper": {
+    "^@/(.*)$": "<rootDir>/src/$1",
+    "^@packages/(.*)$": "<rootDir>/../$1"
   },
   "collectCoverageFrom": [
     "src/**/*.ts",
@@ -18,9 +30,5 @@
   "coverageDirectory": "coverage",
   "coverageReporters": ["text", "lcov", "html"],
   "setupFilesAfterEnv": ["<rootDir>/__tests__/setup.ts"],
-  "testPathIgnorePatterns": ["/node_modules/", "/src/test/", "/src/main/", "/src/ohosTest/"],
-  "moduleNameMapper": {
-    "^@/(.*)$": "<rootDir>/src/$1",
-    "^@packages/(.*)$": "<rootDir>/../$1"
-  }
+  "testPathIgnorePatterns": ["/node_modules/", "/src/test/", "/src/main/", "/src/ohosTest/"]
 }

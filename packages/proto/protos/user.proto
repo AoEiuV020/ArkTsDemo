@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package user;
+
+// 用户信息
+message User {
+  int32 id = 1;
+  string name = 2;
+  string email = 3;
+  int32 age = 4;
+  bool is_active = 5;
+  repeated string tags = 6;
+  UserRole role = 7;
+}
+
+// 用户角色枚举
+enum UserRole {
+  UNKNOWN = 0;
+  USER = 1;
+  ADMIN = 2;
+  MODERATOR = 3;
+}
+
+// 用户列表请求
+message UserListRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string search = 3;
+}
+
+// 用户列表响应
+message UserListResponse {
+  repeated User users = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+// 创建用户请求
+message CreateUserRequest {
+  string name = 1;
+  string email = 2;
+  int32 age = 3;
+  UserRole role = 4;
+  repeated string tags = 5;
+}
+
+// 通用响应
+message CommonResponse {
+  bool success = 1;
+  string message = 2;
+  int32 code = 3;
+}

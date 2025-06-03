@@ -15,6 +15,7 @@
     "examples",
     "src/test",
     "src/main",
-    "src/ohosTest"
+    "src/ohosTest",
+    "src/generated/**/*.js"
   ]
 }

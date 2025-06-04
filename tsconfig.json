@@ -1,20 +1,66 @@
 {
-    "extends": "@arkts/declarations/dist/tsconfig.base.json",
-    "compilerOptions": {
-      // 这里直接指定oh_modules的路径，然后就可以直接导入oh_modules中的模块了
-      "*": ["./oh_modules/*"],
-      "types": ["@arkts/declarations"],
-      "lib": ["ESNext"], // 这样设置之后会排除掉DOM相关的类型，避免和ArkTS的类型冲突
-      "experimentalDecorators": true, // ArkTS采用Stage2装饰器，所以需要开启
-  
-      // 基础的编译器选项和模块选项，建议这样配就行
-      "target": "ESNext",
-      "module": "ESNext",
-      "moduleResolution": "bundler",
-  
-      // 建议开启严格模式
-      "strict": true,
-      // 建议关闭strictPropertyInitialization，这样就不用老加叹号了
-      "strictPropertyInitialization": false
+  "compilerOptions": {
+    /* 基础配置 */
+    "target": "ES2020",
+    "module": "commonjs",
+    "moduleResolution": "Node",
+    "lib": ["ES2020"],
+
+    /* 严格模式（必填） */
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+
+    /* 禁用ArkTS不支持的特性 */
+    "useDefineForClassFields": true,
+    "downlevelIteration": false,
+    "skipLibCheck": true,
+
+    /* 模块相关 */
+    "allowJs": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+
+    /* 输出配置 */
+    "outDir": "./dist",
+    "rootDir": "./",
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": false,
+
+    /* 类型检查 */
+    "types": ["jest", "node"],
+    "disableSizeLimit": true,
+
+    /* 路径映射 */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@packages/*": ["./packages/*"]
     }
-  }
+  },
+  "include": ["packages/*/src/**/*", "packages/*/index.ts", "packages/*/__tests__/**/*"],
+  "exclude": [
+    "node_modules",
+    "oh_modules",
+    "dist",
+    "build",
+    "coverage",
+    "src/main/**",
+    "src/ohosTest/**",
+    "src/test/**",
+    "packages/*/src/test/**",
+    "packages/*/src/main/**",
+    "packages/*/src/ohosTest/**",
+    "hvigorfile.ts",
+    "build-profile.json5",
+    "BuildProfile.ets",
+    "examples",
+    "**/*.js",
+    "**/*.ets",
+    "**/*.json5"
+  ]
+}

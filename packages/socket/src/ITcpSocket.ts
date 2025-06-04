@@ -1,3 +1,5 @@
+import { TcpConnectOptions } from './TcpConnectOptions';
+
 /**
  * TCP Socket抽象接口
  * 封装底层socket操作，便于测试和平台适配
@@ -7,11 +9,7 @@ export interface ITcpSocket {
    * 连接到指定地址
    * @param options 连接选项
    */
-  connect(options: {
-    address: string;
-    port: number;
-    timeout?: number;
-  }): Promise<void>;
+  connect(options: TcpConnectOptions): Promise<void>;
   /**
    * 发送数据
    * @param data 要发送的数据

@@ -40,6 +40,10 @@
     {
       "name": "exampleblanklibrary",
       "srcPath": "./packages/exampleblanklibrary",
+    },
+    {
+      "name": "socket",
+      "srcPath": "./packages/socket",
     }
   ]
 }

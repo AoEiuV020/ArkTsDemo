@@ -1,12 +1,23 @@
 import { Socket } from 'net';
-import { EventEmitter } from 'events';
+import { Emitter } from '@socket.io/component-emitter';
 import { ITcpSocket } from './ITcpSocket';
+
+// 定义事件类型
+interface SocketEvents {
+  connect: () => void;
+  message: (data: Uint8Array) => void;
+  close: () => void;
+  error: (error: Error) => void;
+}
 
 /**
  * Node.js TCP Socket 适配器
  * 将 Node.js 的 net.Socket 适配为 ITcpSocket 接口
  */
-class NodejsTcpSocketAdapter extends EventEmitter implements ITcpSocket {
+class NodejsTcpSocketAdapter
+  extends Emitter<SocketEvents, SocketEvents>
+  implements ITcpSocket
+{
   private socket: Socket;
   private isConnected: boolean = false;
 
@@ -111,8 +122,6 @@ class NodejsTcpSocketAdapter extends EventEmitter implements ITcpSocket {
       this.socket.end();
     });
   }
-
-  // EventEmitter 的 on 方法已经继承，满足接口要求
 }
 
 /**

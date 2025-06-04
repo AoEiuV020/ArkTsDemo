@@ -12,14 +12,15 @@
     "pretty": "prettier --write \"./**/*.{js,jsx,mjs,cjs,ts,tsx,json}\""
   },
   "devDependencies": {
-    "ts-node": "*",
     "@types/jest": "*",
     "@types/node": "*",
     "jest": "*",
     "ts-jest": "*",
+    "ts-node": "*",
     "typescript": "*"
   },
   "dependencies": {
+    "@socket.io/component-emitter": "^3.1.2",
     "logger": "file:../logger"
   }
 }

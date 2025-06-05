@@ -21,6 +21,7 @@ class HarmonyTcpSocketAdapter
 {
   private socket: socket.TCPSocket;
   private isConnected: boolean = false;
+  private hasBeenUsed: boolean = false; // 标记是否已经被使用过
 
   constructor() {
     super();
@@ -38,19 +39,34 @@ class HarmonyTcpSocketAdapter
     this.socket.on('close', () => {
       if (this.isConnected) {
         this.isConnected = false;
+        this.hasBeenUsed = true; // 标记为已使用，禁止重新连接
         super.emit('close');
       }
     });
 
     this.socket.on('error', (error: any) => {
+      // 当发生错误时也要更新状态
+      this.isConnected = false;
+      this.hasBeenUsed = true; // 标记为已使用，禁止重新连接
       super.emit('error', new Error(error.message || 'Socket error'));
     });
   }
 
   async connect(options: TcpConnectOptions): Promise<void> {
+    // 如果已经连接，禁止重复连接
     if (this.isConnected) {
       throw new Error('Socket is already connected. Cannot connect again.');
     }
+
+    // 如果socket已经被使用过（连接过并断开），禁止重新连接
+    if (this.hasBeenUsed) {
+      throw new Error(
+        'Socket has been used and cannot be reconnected. Create a new socket instance.',
+      );
+    }
+
+    // 标记socket开始使用
+    this.hasBeenUsed = true;
 
     const connectOptions: socket.TCPConnectOptions = {
       address: {
@@ -84,6 +100,7 @@ class HarmonyTcpSocketAdapter
     await this.socket.close();
     if (this.isConnected) {
       this.isConnected = false;
+      this.hasBeenUsed = true; // 标记为已使用，禁止重新连接
       super.emit('close');
     }
   }

@@ -17,7 +17,8 @@ interface SocketEvents {
  */
 export class HarmonyTcpSocketAdapter
   extends Emitter<SocketEvents, SocketEvents>
-implements ITcpSocket {
+  implements ITcpSocket
+{
   private socket: socket.TCPSocket;
   private isConnected: boolean = false;
 
@@ -27,66 +28,7 @@ implements ITcpSocket {
     this.setupEventHandlers();
   }
 
-  /**
-   * 封装 once 方法，因为鸿蒙 socket 没有 once 方法
-   * 需要根据具体事件类型进行处理
-   */
-  private socketOnce(event: 'connect', callback: () => void): void;
-
-  private socketOnce(
-    event: 'message',
-    callback: (value: socket.SocketMessageInfo) => void,
-  ): void;
-
-  private socketOnce(event: 'close', callback: () => void): void;
-
-  private socketOnce(event: 'error', callback: (error: any) => void): void;
-
-  private socketOnce(event: string, callback: Function): void {
-    switch (event) {
-      case 'connect': {
-        const onceWrapper = () => {
-          this.socket.off('connect', onceWrapper);
-          callback();
-        };
-        this.socket.on('connect', onceWrapper);
-        break;
-      }
-      case 'message': {
-        const onceWrapper = (value: socket.SocketMessageInfo) => {
-          this.socket.off('message', onceWrapper);
-          callback(value);
-        };
-        this.socket.on('message', onceWrapper);
-        break;
-      }
-      case 'close': {
-        const onceWrapper = () => {
-          this.socket.off('close', onceWrapper);
-          callback();
-        };
-        this.socket.on('close', onceWrapper);
-        break;
-      }
-      case 'error': {
-        const onceWrapper = (error: any) => {
-          this.socket.off('error', onceWrapper);
-          callback(error);
-        };
-        this.socket.on('error', onceWrapper);
-        break;
-      }
-      default:
-        throw new Error(`Unsupported event type: ${event}`);
-    }
-  }
-
   private setupEventHandlers(): void {
-    this.socket.on('connect', () => {
-      this.isConnected = true;
-      super.emit('connect');
-    });
-
     this.socket.on('message', (value: socket.SocketMessageInfo) => {
       // 将接收到的数据转换为 Uint8Array
       const uint8Array = new Uint8Array(value.message as ArrayBuffer);
@@ -94,11 +36,15 @@ implements ITcpSocket {
     });
 
     this.socket.on('close', () => {
-      this.isConnected = false;
-      super.emit('close');
+      console.log('event: close');
+      if (this.isConnected) {
+        this.isConnected = false;
+        super.emit('close');
+      }
     });
 
     this.socket.on('error', (error: any) => {
+      console.log('event: error, ' + JSON.stringify(error));
       super.emit('error', new Error(error.message || 'Socket error'));
     });
   }
@@ -119,43 +65,30 @@ implements ITcpSocket {
     await this.socket.connect(connectOptions);
     this.isConnected = true;
     super.emit('connect');
-
   }
 
   async send(data: Uint8Array): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if (!this.isConnected) {
-        reject(new Error('Socket is not connected'));
-        return;
-      }
+    if (!this.isConnected) {
+      throw new Error('Socket is not connected');
+    }
 
-      const sendOptions: socket.TCPSendOptions = {
-        data: data.buffer,
-      };
+    const sendOptions: socket.TCPSendOptions = {
+      data: data.buffer,
+    };
 
-      this.socket.send(sendOptions, (error?: any) => {
-        if (error) {
-          reject(new Error(error.message || 'Send failed'));
-        } else {
-          resolve();
-        }
-      });
-    });
+    await this.socket.send(sendOptions);
   }
 
   async close(): Promise<void> {
-    return new Promise(resolve => {
-      if (!this.isConnected) {
-        resolve();
-        return;
-      }
-
-      this.socketOnce('close', () => {
-        resolve();
-      });
-
-      this.socket.close();
-    });
+    if (!this.isConnected) {
+      return;
+    }
+    await this.socket.close();
+    console.log('call: close, isConnected:' + this.isConnected);
+    if (this.isConnected) {
+      this.isConnected = false;
+      super.emit('close');
+    }
   }
 }
 

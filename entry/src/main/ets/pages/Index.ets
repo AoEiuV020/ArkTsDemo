@@ -62,5 +62,5 @@ async function socketTest(): Promise<void> {
   console.log('✅ 收到回显:', echoText);
 
   await tcpSocket.close();
-
+  console.log('成功关闭');
 }

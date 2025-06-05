@@ -15,10 +15,9 @@ interface SocketEvents {
  * 鸿蒙 TCP Socket 适配器
  * 将鸿蒙的 socket API 适配为 ITcpSocket 接口
  */
-class HarmonyTcpSocketAdapter
+export class HarmonyTcpSocketAdapter
   extends Emitter<SocketEvents, SocketEvents>
-  implements ITcpSocket
-{
+implements ITcpSocket {
   private socket: socket.TCPSocket;
   private isConnected: boolean = false;
 
@@ -103,37 +102,24 @@ class HarmonyTcpSocketAdapter
       super.emit('error', new Error(error.message || 'Socket error'));
     });
   }
+
   async connect(options: TcpConnectOptions): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if (this.isConnected) {
-        resolve();
-        return;
-      }
+    if (this.isConnected) {
+      return;
+    }
 
-      const connectOptions: socket.TCPConnectOptions = {
-        address: {
-          address: options.address,
-          port: options.port,
-        },
-        timeout: options.timeout,
-      };
-      // 连接错误处理
-      const onError = (error: any) => {
-        this.socket.off('connect', onConnect);
-        reject(new Error(error.message || 'Connection failed'));
-      };
+    const connectOptions: socket.TCPConnectOptions = {
+      address: {
+        address: options.address,
+        port: options.port,
+      },
+      timeout: options.timeout,
+    };
 
-      // 连接成功处理
-      const onConnect = () => {
-        this.socket.off('error', onError);
-        resolve();
-      };
+    await this.socket.connect(connectOptions);
+    this.isConnected = true;
+    super.emit('connect');
 
-      this.socketOnce('error', onError);
-      this.socketOnce('connect', onConnect);
-
-      this.socket.connect(connectOptions);
-    });
   }
 
   async send(data: Uint8Array): Promise<void> {
@@ -171,7 +157,6 @@ class HarmonyTcpSocketAdapter
       this.socket.close();
     });
   }
-
 }
 
 /**

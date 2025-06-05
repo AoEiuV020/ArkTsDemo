@@ -5,5 +5,5 @@
     "rootDir": "./"
   },
   "include": ["src/**/*", "index.ts", "__tests__/**/*"],
-  "exclude": ["src/HarmonyTcpSocketFactory.ts"],
+  "exclude": ["src/HarmonyTcpSocketFactory.ts"]
 }

@@ -84,7 +84,7 @@ export class NodejsTcpServer extends EventEmitter {
    * 停止服务器
    */
   public stop(): Promise<void> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       if (!this.isListening) {
         resolve();
         return;
@@ -108,7 +108,7 @@ export class NodejsTcpServer extends EventEmitter {
     return {
       isListening: this.isListening,
       port: this.port,
-      address: typeof address === 'string' ? address : address?.address
+      address: typeof address === 'string' ? address : address?.address,
     };
   }
 
@@ -126,26 +126,6 @@ export class NodejsTcpServer extends EventEmitter {
       });
     });
   }
-
-  /**
-   * 设置服务器选项
-   */
-  public setOptions(options: {
-    timeout?: number;
-    keepAlive?: boolean;
-    keepAliveInitialDelay?: number;
-  }): void {
-    if (options.timeout) {
-      this.server.timeout = options.timeout;
-    }
-    
-    // 注意：keepAlive相关选项需要在每个连接上设置
-    this.on('connection', (socket: net.Socket) => {
-      if (options.keepAlive !== undefined) {
-        socket.setKeepAlive(options.keepAlive, options.keepAliveInitialDelay || 0);
-      }
-    });
-  }
 }
 
 // 创建服务器实例的工厂函数
@@ -156,13 +136,15 @@ export function createTcpServer(port: number = 8888): NodejsTcpServer {
 // 如果直接运行此文件，启动服务器
 if (require.main === module) {
   const server = createTcpServer(8888);
-  
+
   server.on('listening', () => {
     console.log('TCP回显服务器启动成功');
   });
 
   server.on('message', (data: Buffer, socket: net.Socket) => {
-    console.log(`收到来自 ${socket.remoteAddress}:${socket.remotePort} 的消息: ${data.toString()}`);
+    console.log(
+      `收到来自 ${socket.remoteAddress}:${socket.remotePort} 的消息: ${data.toString()}`,
+    );
   });
 
   server.on('error', (error: Error) => {
@@ -170,7 +152,7 @@ if (require.main === module) {
     process.exit(1);
   });
 
-  server.start().catch((error) => {
+  server.start().catch(error => {
     console.error('无法启动服务器:', error.message);
     process.exit(1);
   });

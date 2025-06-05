@@ -15,7 +15,7 @@ interface SocketEvents {
  * 鸿蒙 TCP Socket 适配器
  * 将鸿蒙的 socket API 适配为 ITcpSocket 接口
  */
-export class HarmonyTcpSocketAdapter
+class HarmonyTcpSocketAdapter
   extends Emitter<SocketEvents, SocketEvents>
   implements ITcpSocket
 {
@@ -31,12 +31,11 @@ export class HarmonyTcpSocketAdapter
   private setupEventHandlers(): void {
     this.socket.on('message', (value: socket.SocketMessageInfo) => {
       // 将接收到的数据转换为 Uint8Array
-      const uint8Array = new Uint8Array(value.message as ArrayBuffer);
+      const uint8Array = new Uint8Array(value.message);
       super.emit('message', uint8Array);
     });
 
     this.socket.on('close', () => {
-      console.log('event: close');
       if (this.isConnected) {
         this.isConnected = false;
         super.emit('close');
@@ -44,7 +43,6 @@ export class HarmonyTcpSocketAdapter
     });
 
     this.socket.on('error', (error: any) => {
-      console.log('event: error, ' + JSON.stringify(error));
       super.emit('error', new Error(error.message || 'Socket error'));
     });
   }
@@ -84,7 +82,6 @@ export class HarmonyTcpSocketAdapter
       return;
     }
     await this.socket.close();
-    console.log('call: close, isConnected:' + this.isConnected);
     if (this.isConnected) {
       this.isConnected = false;
       super.emit('close');

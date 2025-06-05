@@ -1,5 +1,3 @@
-import { HarmonyTcpSocketFactory } from './src/HarmonyTcpSocketFactory'
+import { HarmonyTcpSocketFactory } from './src/HarmonyTcpSocketFactory';
 
-export {
-  HarmonyTcpSocketFactory,
-}
+export { HarmonyTcpSocketFactory };

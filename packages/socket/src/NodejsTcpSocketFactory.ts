@@ -20,13 +20,13 @@ class NodejsTcpSocketAdapter
 {
   private socket: Socket;
   private isConnected: boolean = false;
+  private hasBeenUsed: boolean = false; // 标记是否已经被使用过
 
   constructor() {
     super();
     this.socket = new Socket();
     this.setupEventHandlers();
   }
-
   private setupEventHandlers(): void {
     this.socket.on('connect', () => {
       this.isConnected = true;
@@ -38,13 +38,22 @@ class NodejsTcpSocketAdapter
       const uint8Array = new Uint8Array(data);
       this.emit('message', uint8Array);
     });
-
-    this.socket.on('close', () => {
+    this.socket.on('close', (hadError: boolean) => {
       this.isConnected = false;
+      this.hasBeenUsed = true; // 标记为已使用，禁止重新连接
       this.emit('close');
+    });
+    this.socket.on('end', () => {
+      // 当远程端结束连接时更新状态，但不重复触发close事件
+      // close事件会在socket实际关闭时触发
+      this.isConnected = false;
+      this.hasBeenUsed = true; // 标记为已使用，禁止重新连接
     });
 
     this.socket.on('error', (error: Error) => {
+      // 当发生错误时也要更新状态
+      this.isConnected = false;
+      this.hasBeenUsed = true; // 标记为已使用，禁止重新连接
       this.emit('error', error);
     });
 
@@ -52,17 +61,30 @@ class NodejsTcpSocketAdapter
       this.emit('error', new Error('Connection timeout'));
     });
   }
-
   async connect(options: {
     address: string;
     port: number;
     timeout?: number;
   }): Promise<void> {
     return new Promise((resolve, reject) => {
+      // 如果已经连接，直接返回
       if (this.isConnected) {
         resolve();
         return;
       }
+
+      // 如果socket已经被使用过（连接过并断开），禁止重新连接
+      if (this.hasBeenUsed) {
+        reject(
+          new Error(
+            'Socket has been used and cannot be reconnected. Create a new socket instance.',
+          ),
+        );
+        return;
+      }
+
+      // 标记socket开始使用
+      this.hasBeenUsed = true;
 
       // 设置超时
       if (options.timeout) {
@@ -72,12 +94,14 @@ class NodejsTcpSocketAdapter
       // 连接错误处理
       const onError = (error: Error) => {
         this.socket.removeAllListeners('connect');
+        this.isConnected = false;
         reject(error);
       };
 
       // 连接成功处理
       const onConnect = () => {
         this.socket.removeListener('error', onError);
+        this.isConnected = true;
         resolve();
       };
 
@@ -87,10 +111,9 @@ class NodejsTcpSocketAdapter
       this.socket.connect(options.port, options.address);
     });
   }
-
   async send(data: Uint8Array): Promise<void> {
     return new Promise((resolve, reject) => {
-      if (!this.isConnected) {
+      if (!this.isConnected || this.socket.destroyed || !this.socket.writable) {
         reject(new Error('Socket is not connected'));
         return;
       }

@@ -67,9 +67,9 @@ class NodejsTcpSocketAdapter
     timeout?: number;
   }): Promise<void> {
     return new Promise((resolve, reject) => {
-      // 如果已经连接，直接返回
+      // 如果已经连接，禁止重复连接
       if (this.isConnected) {
-        resolve();
+        reject(new Error('Socket is already connected. Cannot connect again.'));
         return;
       }
 

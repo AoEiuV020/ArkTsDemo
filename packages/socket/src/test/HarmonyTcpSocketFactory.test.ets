@@ -131,7 +131,7 @@ export default function harmonyTcpSocketFactoryTest() {
         expect(error).not().assertNull();
       }
     });
-    it('shouldHandleMultipleConnects', 0, async () => {
+    it('shouldRejectMultipleConnects', 0, async () => {
       const connectOptions: TcpConnectOptions = {
         address: '127.0.0.1',
         port: 8080
@@ -141,11 +141,15 @@ export default function harmonyTcpSocketFactoryTest() {
         // 第一次连接（可能失败）
         await tcpSocket.connect(connectOptions);
 
-        // 第二次连接应该立即成功（如果已经连接）或再次尝试连接
-        await tcpSocket.connect(connectOptions);
-        expect(true).assertEqual(true);
+        // 第二次连接应该被拒绝（已经连接）
+        try {
+          await tcpSocket.connect(connectOptions);
+          expect(false).assertEqual(true); // 不应该到达这里
+        } catch (secondConnectError) {
+          expect(secondConnectError.message).assertContain('Socket is already connected');
+        }
       } catch (error) {
-        // 连接失败是正常的，只要不崩溃即可
+        // 第一次连接失败是正常的，跳过测试
         expect(error).not().assertNull();
       }
     });

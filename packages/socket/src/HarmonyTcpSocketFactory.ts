@@ -49,7 +49,7 @@ class HarmonyTcpSocketAdapter
 
   async connect(options: TcpConnectOptions): Promise<void> {
     if (this.isConnected) {
-      return;
+      throw new Error('Socket is already connected. Cannot connect again.');
     }
 
     const connectOptions: socket.TCPConnectOptions = {

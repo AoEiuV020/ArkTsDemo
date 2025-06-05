@@ -106,20 +106,20 @@ describe('TCP Socket Integration Tests with Server', () => {
       );
     });
 
-    it('should handle multiple connects gracefully', async () => {
+    it('should reject multiple connects when already connected', async () => {
       // 第一次连接
       await socket.connect({
         address: '127.0.0.1',
         port: testPort,
       });
 
-      // 第二次连接应该立即成功（已经连接）
+      // 第二次连接应该被拒绝（已经连接）
       await expect(
         socket.connect({
           address: '127.0.0.1',
           port: testPort,
         }),
-      ).resolves.toBeUndefined();
+      ).rejects.toThrow('Socket is already connected. Cannot connect again.');
     });
 
     it('should handle close when not connected', async () => {

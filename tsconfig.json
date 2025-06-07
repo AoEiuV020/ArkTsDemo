@@ -5,6 +5,7 @@
     "module": "commonjs",
     "moduleResolution": "Node",
     "lib": ["ES2020"],
+    "resolveJsonModule": true,
 
     /* 严格模式（必填） */
     "strict": true,

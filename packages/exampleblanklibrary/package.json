@@ -12,11 +12,11 @@
     "pretty": "prettier --write \"./**/*.{js,jsx,mjs,cjs,ts,tsx,json}\""
   },
   "devDependencies": {
-    "ts-node": "*",
     "@types/jest": "*",
     "@types/node": "*",
     "jest": "*",
     "ts-jest": "*",
+    "ts-node": "*",
     "typescript": "*"
   },
   "dependencies": {

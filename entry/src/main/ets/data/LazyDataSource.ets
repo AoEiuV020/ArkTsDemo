@@ -110,28 +110,28 @@ export class LazyDataSource implements IDataSource {
   }
 
   // 通知数据添加
-  private notifyDataAdd(index: number, count: number): void {
+  notifyDataAdd(index: number, count: number): void {
     this.listeners.forEach(listener => {
       listener.onDataAdd(index);
     });
   }
 
   // 通知数据删除
-  private notifyDataDelete(index: number, count: number): void {
+  notifyDataDelete(index: number, count: number): void {
     this.listeners.forEach(listener => {
       listener.onDataDelete(index);
     });
   }
 
   // 通知数据变化
-  private notifyDataChange(index: number): void {
+  notifyDataChange(index: number): void {
     this.listeners.forEach(listener => {
       listener.onDataChange(index);
     });
   }
 
   // 通知数据移动
-  private notifyDataMove(from: number, to: number): void {
+  notifyDataMove(from: number, to: number): void {
     this.listeners.forEach(listener => {
       listener.onDataMove(from, to);
     });

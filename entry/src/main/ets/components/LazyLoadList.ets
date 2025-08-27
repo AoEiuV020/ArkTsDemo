@@ -25,11 +25,17 @@ export struct LazyLoadList {
     Column() {
       List({ space: 8 }) {
         // 使用LazyForEach实现真正的懒加载
-        LazyForEach(this.dataSource, (item: ListItemModel) => {
+        LazyForEach(this.dataSource, (item: ListItemModel, index: number) => {
           ListItem() {
             ListItemView({
               item: item,
-              onItemClick: this.onItemClick
+              onItemClick: (item) => {
+                item.title += '1';
+                this.dataSource.notifyDataChange(index)
+                if (this.onItemClick) {
+                  this.onItemClick(item);
+                }
+              }
             })
           }
         }, (item: ListItemModel) => item.id.toString())

@@ -6,20 +6,12 @@
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc --watch",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
+    "test": "vitest",
     "pretty": "prettier --write \"./**/*.{js,jsx,mjs,cjs,ts,tsx,json}\""
   },
   "devDependencies": {
-    "@types/jest": "*",
     "@types/node": "*",
-    "jest": "*",
-    "ts-jest": "*",
-    "ts-node": "*",
-    "typescript": "*"
+    "vitest": "*"
   },
-  "dependencies": {
-    "logger": "file:../logger"
-  }
+  "dependencies": {}
 }

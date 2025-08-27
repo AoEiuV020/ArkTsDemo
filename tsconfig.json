@@ -6,6 +6,7 @@
     "moduleResolution": "Node",
     "lib": ["ES2020"],
     "resolveJsonModule": true,
+    "isolatedModules": true,
 
     /* 严格模式（必填） */
     "strict": true,
@@ -33,15 +34,8 @@
     "sourceMap": false,
 
     /* 类型检查 */
-    "types": ["jest", "node"],
-    "disableSizeLimit": true,
-
-    /* 路径映射 */
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"],
-      "@packages/*": ["./packages/*"]
-    }
+    "types": ["node", "vitest/globals"],
+    "disableSizeLimit": true
   },
   "include": ["packages/*/src/**/*", "packages/*/index.ts", "packages/*/__tests__/**/*"],
   "exclude": [

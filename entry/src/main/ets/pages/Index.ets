@@ -1,3 +1,5 @@
+import { TsClass } from 'exampleblanklibrary';
+
 @Entry
 @Component
 struct Index {
@@ -14,7 +16,7 @@ struct Index {
           middle: { anchor: '__container__', align: HorizontalAlign.Center }
         })
         .onClick(() => {
-          this.message = 'Welcome';
+          this.message = TsClass.message;
         })
     }
     .height('100%')

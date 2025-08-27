@@ -1,7 +1,7 @@
 import router from '@ohos.router';
 
 @Entry
-@Component
+@ComponentV2
 struct Index {
   build() {
     Column() {
@@ -13,9 +13,29 @@ struct Index {
       Button('进入列表测试页')
         .width(200)
         .height(50)
+        .margin({ bottom: 20 })
         .onClick(() => {
           router.pushUrl({
             url: 'pages/ListTestPage'
+          })
+        })
+
+      Button('LazyForEach 真懒加载')
+        .width(200)
+        .height(50)
+        .margin({ bottom: 20 })
+        .onClick(() => {
+          router.pushUrl({
+            url: 'pages/LazyForEachTestPage'
+          })
+        })
+
+      Button('性能对比测试')
+        .width(200)
+        .height(50)
+        .onClick(() => {
+          router.pushUrl({
+            url: 'pages/PerformanceComparisonPage'
           })
         })
     }

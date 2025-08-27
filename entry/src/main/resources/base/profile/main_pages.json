@@ -1,6 +1,8 @@
 {
   "src": [
     "pages/Index",
-    "pages/ListTestPage"
+    "pages/ListTestPage",
+    "pages/LazyForEachTestPage",
+    "pages/PerformanceComparisonPage"
   ]
 }

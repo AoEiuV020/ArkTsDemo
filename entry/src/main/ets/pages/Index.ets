@@ -1,4 +1,4 @@
-import { TsClass } from 'exampleblanklibrary';
+import { EtsClass, SrcClass } from 'exampleblanklibrary';
 
 @Entry
 @Component
@@ -16,7 +16,7 @@ struct Index {
           middle: { anchor: '__container__', align: HorizontalAlign.Center }
         })
         .onClick(() => {
-          this.message = TsClass.message;
+          this.message = SrcClass.message + '/' + EtsClass.message;
         })
     }
     .height('100%')

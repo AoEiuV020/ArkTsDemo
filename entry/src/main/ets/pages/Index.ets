@@ -1,4 +1,5 @@
-import { EtsClass, SrcClass } from 'exampleblanklibrary';
+import { SrcClass } from '../../../SrcClass';
+import { EtsClass } from '../EtsClass';
 
 @Entry
 @Component

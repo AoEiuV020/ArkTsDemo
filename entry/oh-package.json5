@@ -5,9 +5,7 @@
   "main": "",
   "author": "",
   "license": "",
-  "dependencies": {
-    "exampleblanklibrary": "file:../packages/exampleblanklibrary"
-  },
+  "dependencies": {},
   "devDependencies": {},
   "dynamicDependencies": {}
 }

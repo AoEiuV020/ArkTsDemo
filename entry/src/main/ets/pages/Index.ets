@@ -1,22 +1,26 @@
+import router from '@ohos.router';
+
 @Entry
 @Component
 struct Index {
-  @State message: string = 'Hello World';
-
   build() {
-    RelativeContainer() {
-      Text(this.message)
-        .id('HelloWorld')
-        .fontSize($r('app.float.page_text_font_size'))
+    Column() {
+      Text('主页')
+        .fontSize(24)
         .fontWeight(FontWeight.Bold)
-        .alignRules({
-          center: { anchor: '__container__', align: VerticalAlign.Center },
-          middle: { anchor: '__container__', align: HorizontalAlign.Center }
-        })
+        .margin({ bottom: 20 })
+
+      Button('进入列表测试页')
+        .width(200)
+        .height(50)
         .onClick(() => {
-          this.message = 'Welcome';
+          router.pushUrl({
+            url: 'pages/ListTestPage'
+          })
         })
     }
+    .justifyContent(FlexAlign.Center)
+    .alignItems(HorizontalAlign.Center)
     .height('100%')
     .width('100%')
   }

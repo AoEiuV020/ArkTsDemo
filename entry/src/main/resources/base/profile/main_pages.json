@@ -3,6 +3,7 @@
     "pages/Index",
     "pages/ListTestPage",
     "pages/LazyForEachTestPage",
-    "pages/PerformanceComparisonPage"
+    "pages/PerformanceComparisonPage",
+    "pages/RepeatVirtualScrollTestPage"
   ]
 }

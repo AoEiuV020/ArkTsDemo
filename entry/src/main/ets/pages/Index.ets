@@ -38,6 +38,16 @@ struct Index {
             url: 'pages/PerformanceComparisonPage'
           })
         })
+
+      Button('Repeat 虚拟滚动')
+        .width(200)
+        .height(50)
+        .margin({ top: 20 })
+        .onClick(() => {
+          router.pushUrl({
+            url: 'pages/RepeatVirtualScrollTestPage'
+          })
+        })
     }
     .justifyContent(FlexAlign.Center)
     .alignItems(HorizontalAlign.Center)

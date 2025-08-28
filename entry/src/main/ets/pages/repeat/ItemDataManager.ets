@@ -8,10 +8,10 @@ export class ItemDataManager {
     this.initializeData();
   }
 
-  @Trace private _dataList: Array<ItemInfo> = [];
+  @Trace private _dataList: ItemInfo[] = [];
 
   // 获取数据列表
-  get dataList(): Array<ItemInfo> {
+  get dataList(): ItemInfo[] {
     return this._dataList;
   }
 

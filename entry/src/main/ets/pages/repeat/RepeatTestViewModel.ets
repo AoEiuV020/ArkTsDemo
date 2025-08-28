@@ -9,7 +9,7 @@ export class RepeatTestViewModel {
   @Trace private dataManager: ItemDataManager = new ItemDataManager();
 
   // 获取数据列表
-  get dataList(): Array<ItemInfo> {
+  get dataList(): ItemInfo[] {
     return this.dataManager.dataList;
   }
 

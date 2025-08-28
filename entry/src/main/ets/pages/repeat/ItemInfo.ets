@@ -15,12 +15,4 @@ export class ItemInfo {
   toggleSelected(): void {
     this.isSelected = !this.isSelected;
   }
-
-  // 更新item名称
-  updateName(newName: string): void {
-    this.item = {
-      id: this.item.id,
-      name: newName,
-    }
-  }
 }

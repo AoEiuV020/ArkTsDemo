@@ -15,7 +15,10 @@ export class RepeatTestViewModel {
     if (index >= 0 && index < this.dataList.length) {
       const itemInfo = this.dataList[index];
       const newName = itemInfo.item.name + '!';
-      itemInfo.updateName(newName);
+      this.dataList[index] = new ItemInfo({
+        id: itemInfo.item.id,
+        name: newName,
+      }, false)
     }
   }
 

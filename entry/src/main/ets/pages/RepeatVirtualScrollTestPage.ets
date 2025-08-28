@@ -61,7 +61,7 @@ struct RepeatVirtualScrollTestPage {
       Repeat<ItemInfo>(this.viewModel.dataList)
         .each((ri: RepeatItem<ItemInfo>) => {
           ListItem() {
-            this.buildListItem(ri.item, ri.index)
+            this.buildListItem(ri)
           }
           .border({ width: 0.5, color: '#E0E0E0' })
         })
@@ -74,25 +74,25 @@ struct RepeatVirtualScrollTestPage {
   }
 
   @Builder
-  buildListItem(itemInfo: ItemInfo, index: number) {
+  buildListItem(ri: RepeatItem<ItemInfo>) {
     Row() {
       // 复选框
-      Checkbox({ name: `checkbox_${itemInfo.item.id}`, group: 'itemGroup' })
-        .select(itemInfo.isSelected)
+      Checkbox({ name: `checkbox_${ri.item.item.id}`, group: 'itemGroup' })
+        .select(ri.item.isSelected)
         .selectedColor('#007AFF')
         .onChange((value: boolean) => {
-          this.viewModel.onCheckboxChange(index, value);
+          this.viewModel.onCheckboxChange(ri.index, value);
         })
         .margin({ right: 12 })
 
       // 内容区域
       Column() {
-        Text(`ID: ${itemInfo.item.id}`)
+        Text(`ID: ${ri.item.item.id}`)
           .fontSize(14)
           .fontColor('#999999')
           .alignSelf(ItemAlign.Start)
 
-        Text(itemInfo.item.name)
+        Text(ri.item.item.name)
           .fontSize(18)
           .fontWeight(FontWeight.Medium)
           .alignSelf(ItemAlign.Start)
@@ -102,7 +102,7 @@ struct RepeatVirtualScrollTestPage {
       .alignItems(HorizontalAlign.Start)
 
       // 状态指示器
-      if (itemInfo.isSelected) {
+      if (ri.item.isSelected) {
         Text('✓')
           .fontSize(20)
           .fontColor('#007AFF')
@@ -116,9 +116,9 @@ struct RepeatVirtualScrollTestPage {
       top: 12,
       bottom: 12
     })
-    .backgroundColor(itemInfo.isSelected ? '#F0F8FF' : '#FFFFFF')
+    .backgroundColor(ri.item.isSelected ? '#F0F8FF' : '#FFFFFF')
     .onClick(() => {
-      this.viewModel.onItemClick(index);
+      this.viewModel.onItemClick(ri.index);
     })
     .onTouch((event: TouchEvent) => {
       if (event.type === TouchType.Down) {

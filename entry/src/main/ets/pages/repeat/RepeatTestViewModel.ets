@@ -14,7 +14,7 @@ export class RepeatTestViewModel {
   onItemClick(index: number): void {
     if (index >= 0 && index < this.dataList.length) {
       const itemInfo = this.dataList[index];
-      const newName = itemInfo.item.name + '_clicked';
+      const newName = itemInfo.item.name + '!';
       itemInfo.updateName(newName);
     }
   }

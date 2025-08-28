@@ -18,6 +18,9 @@ export class ItemInfo {
 
   // 更新item名称
   updateName(newName: string): void {
-    this.item.name = newName
+    this.item = {
+      id: this.item.id,
+      name: newName,
+    }
   }
 }

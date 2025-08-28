@@ -3,4 +3,6 @@ export { Item } from './Item';
 
 export { ItemInfo } from './ItemInfo';
 
+export { ItemDataManager } from './ItemDataManager';
+
 export { RepeatTestViewModel } from './RepeatTestViewModel';

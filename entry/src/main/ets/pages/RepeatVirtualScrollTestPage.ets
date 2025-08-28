@@ -19,40 +19,70 @@ struct RepeatVirtualScrollTestPage {
 
   @Builder
   buildHeader() {
-    Row() {
-      Text(`已选择: ${this.viewModel.getSelectedCount()} 项`)
-        .fontSize(16)
-        .fontColor('#666666')
+    Column() {
+      // 第一行：复选框功能控制
+      Row() {
+        Text('列表操作')
+          .fontSize(18)
+          .fontWeight(FontWeight.Medium)
 
-      Blank()
+        Blank()
 
-      Button('全选')
-        .fontSize(14)
-        .padding({
-          left: 12,
-          right: 12,
-          top: 6,
-          bottom: 6
-        })
-        .onClick(() => {
-          this.viewModel.selectAll(true);
-        })
+        Button(this.viewModel.isCheckboxVisible ? '隐藏选择' : '启用选择')
+          .fontSize(14)
+          .padding({
+            left: 12,
+            right: 12,
+            top: 6,
+            bottom: 6
+          })
+          .backgroundColor(this.viewModel.isCheckboxVisible ? '#FF6B6B' : '#4ECDC4')
+          .fontColor('#FFFFFF')
+          .onClick(() => {
+            this.viewModel.toggleCheckboxVisible();
+          })
+      }
+      .width('100%')
+      .margin({ bottom: 12 })
 
-      Button('全不选')
-        .fontSize(14)
-        .padding({
-          left: 12,
-          right: 12,
-          top: 6,
-          bottom: 6
-        })
-        .margin({ left: 8 })
-        .onClick(() => {
-          this.viewModel.selectAll(false);
-        })
+      // 第二行：选择操作（仅在复选框可见时显示）
+      if (this.viewModel.isCheckboxVisible) {
+        Row() {
+          Text(`已选择: ${this.viewModel.getSelectedCount()} 项`)
+            .fontSize(16)
+            .fontColor('#666666')
+
+          Blank()
+
+          Button('全选')
+            .fontSize(14)
+            .padding({
+              left: 12,
+              right: 12,
+              top: 6,
+              bottom: 6
+            })
+            .onClick(() => {
+              this.viewModel.selectAll(true);
+            })
+
+          Button('全不选')
+            .fontSize(14)
+            .padding({
+              left: 12,
+              right: 12,
+              top: 6,
+              bottom: 6
+            })
+            .margin({ left: 8 })
+            .onClick(() => {
+              this.viewModel.selectAll(false);
+            })
+        }
+        .width('100%')
+      }
     }
     .width('100%')
-    .padding({ bottom: 12 })
   }
 
   @Builder
@@ -76,14 +106,16 @@ struct RepeatVirtualScrollTestPage {
   @Builder
   buildListItem(ri: RepeatItem<ItemInfo>) {
     Row() {
-      // 复选框
-      Checkbox({ name: `checkbox_${ri.item.item.id}`, group: 'itemGroup' })
-        .select(ri.item.isSelected)
-        .selectedColor('#007AFF')
-        .onChange((value: boolean) => {
-          this.viewModel.onCheckboxChange(ri.index, value);
-        })
-        .margin({ right: 12 })
+      // 复选框（根据状态显示隐藏）
+      if (this.viewModel.isCheckboxVisible) {
+        Checkbox({ name: `checkbox_${ri.item.item.id}`, group: 'itemGroup' })
+          .select(ri.item.isSelected)
+          .selectedColor('#007AFF')
+          .onChange((value: boolean) => {
+            this.viewModel.onCheckboxChange(ri.index, value);
+          })
+          .margin({ right: 12 })
+      }
 
       // 内容区域
       Column() {
@@ -101,8 +133,8 @@ struct RepeatVirtualScrollTestPage {
       .layoutWeight(1)
       .alignItems(HorizontalAlign.Start)
 
-      // 状态指示器
-      if (ri.item.isSelected) {
+      // 状态指示器（仅在复选框可见且选中时显示）
+      if (this.viewModel.isCheckboxVisible && ri.item.isSelected) {
         Text('✓')
           .fontSize(20)
           .fontColor('#007AFF')
@@ -116,7 +148,7 @@ struct RepeatVirtualScrollTestPage {
       top: 12,
       bottom: 12
     })
-    .backgroundColor(ri.item.isSelected ? '#F0F8FF' : '#FFFFFF')
+    .backgroundColor(this.viewModel.isCheckboxVisible && ri.item.isSelected ? '#F0F8FF' : '#FFFFFF')
     .onClick(() => {
       this.viewModel.onItemClick(ri.index);
     })

@@ -27,10 +27,10 @@ export class ItemDataManager {
   updateItemName(index: number, newName: string): void {
     if (index >= 0 && index < this._dataList.length) {
       const itemInfo = this._dataList[index];
-      this._dataList[index] = new ItemInfo({
+      this._dataList[index].item = {
         id: itemInfo.item.id,
         name: newName,
-      }, itemInfo.isSelected);
+      };
     }
   }
 

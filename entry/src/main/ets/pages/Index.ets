@@ -10,6 +10,16 @@ struct Index {
         .fontWeight(FontWeight.Bold)
         .margin({ bottom: 20 })
 
+      Button('Simple')
+        .width(200)
+        .height(50)
+        .margin({ bottom: 20 })
+        .onClick(() => {
+          router.pushUrl({
+            url: 'pages/Simple'
+          })
+        })
+
       Button('进入列表测试页')
         .width(200)
         .height(50)

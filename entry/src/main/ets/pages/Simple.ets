@@ -1,9 +1,8 @@
-// 在List容器组件中使用Repeat
 @Entry
 @ComponentV2
-  // 推荐使用V2装饰器
 struct RepeatExample {
   @Local dataArr: Array<string> = []; // 数据源
+  @Local hasMore: boolean = true
 
   aboutToAppear(): void {
     for (let i = 0; i < 50; i++) {
@@ -13,18 +12,66 @@ struct RepeatExample {
 
   build() {
     Column() {
-      List() {
-        Repeat<string>(this.dataArr)
-          .each((ri: RepeatItem<string>) => {
-            ListItem() {
-              Text('each_' + ri.item).fontSize(30)
-            }
-          })
-          .virtualScroll({ totalCount: this.dataArr.length }) // 打开懒加载，totalCount为期望加载的数据长度
+      LoadMoreView({
+        hasMore: this.hasMore,
+        onLoadMore: () => {
+          this.hasMore = false;
+        }
+      }) {
+        List() {
+          Repeat<string>(this.dataArr)
+            .each((ri: RepeatItem<string>) => {
+              ListItem() {
+                Text('each_' + ri.item).fontSize(30)
+              }
+            })
+            .virtualScroll({ totalCount: this.dataArr.length }) // 打开懒加载，totalCount为期望加载的数据长度
+        }
+        .cachedCount(2) // 容器组件的预加载区域大小
+        .height('70%')
+        .border({ width: 1 }) // 边框
       }
-      .cachedCount(2) // 容器组件的预加载区域大小
-      .height('70%')
-      .border({ width: 1 }) // 边框
+    }
+  }
+}
+
+@ComponentV2
+export struct LoadMoreView {
+  @Event onLoadMore?: () => Promise<void> | void = undefined
+  @Param hasMore?: boolean = true // 是否还有更多数据
+  @Require @BuilderParam content: () => void // 直接包装的内容
+  @Local isLoading: boolean = false
+
+  build() {
+    Refresh({
+      refreshing: this.isLoading,
+    }) {
+      this.content()
+    }
+    .onRefreshing(() => {
+      this.handleLoadMore()
+    })
+  }
+
+  private async handleLoadMore() {
+    if (this.isLoading) {
+      return
+    }
+    this.isLoading = true
+    if (!this.hasMore) {
+      this.isLoading = false
+      return
+    }
+    try {
+      if (this.onLoadMore) {
+        await this.onLoadMore()
+      } else {
+        // 默认延迟，模拟加载
+        const ms = 1500
+        await new Promise<number>(resolve => setTimeout(() => resolve(ms), ms))
+      }
+    } finally {
+      this.isLoading = false
     }
   }
 }

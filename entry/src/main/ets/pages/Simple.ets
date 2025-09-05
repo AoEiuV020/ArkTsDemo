@@ -2,7 +2,6 @@
 @ComponentV2
 struct RepeatExample {
   @Local dataArr: Array<string> = []; // 数据源
-  @Local hasMore: boolean = true
 
   aboutToAppear(): void {
     for (let i = 0; i < 50; i++) {
@@ -13,9 +12,10 @@ struct RepeatExample {
   build() {
     Column() {
       LoadMoreView({
-        hasMore: this.hasMore,
-        onLoadMore: () => {
-          this.hasMore = false;
+        onLoadMore: async () => {
+          const ms = 500
+          await new Promise<number>(resolve => setTimeout(() => resolve(ms), ms))
+          return false
         }
       }) {
         List() {
@@ -37,8 +37,8 @@ struct RepeatExample {
 
 @ComponentV2
 export struct LoadMoreView {
-  @Event onLoadMore?: () => Promise<void> | void = undefined
-  @Param hasMore?: boolean = true // 是否还有更多数据
+  @Event onLoadMore?: () => Promise<boolean> | boolean = undefined
+  @Local hasMore: boolean = true // 是否还有更多数据
   @Require @BuilderParam content: () => void // 直接包装的内容
   @Local isLoading: boolean = false
 
@@ -64,11 +64,7 @@ export struct LoadMoreView {
     }
     try {
       if (this.onLoadMore) {
-        await this.onLoadMore()
-      } else {
-        // 默认延迟，模拟加载
-        const ms = 1500
-        await new Promise<number>(resolve => setTimeout(() => resolve(ms), ms))
+        this.hasMore = await this.onLoadMore()
       }
     } finally {
       this.isLoading = false

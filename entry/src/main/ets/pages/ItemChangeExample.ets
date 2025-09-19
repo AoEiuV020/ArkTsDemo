@@ -1,4 +1,3 @@
-import { UIUtils } from '@kit.ArkUI';
 
 interface Item {
   name: string;
@@ -8,10 +7,11 @@ interface Item {
 struct ItemChangeExample {
   @Local dataArr: Array<Item> = []; // 数据源
   @Local hasMore: boolean = true
+  staticItem: Item = { name: 'static' }
 
   aboutToAppear(): void {
     for (let i = 0; i < 50; i++) {
-      this.dataArr.push(UIUtils.makeObserved({ name: `data_${i}` })); // 为数组添加一些数据
+      this.dataArr.push(({ name: `data_${i}` })); // 为数组添加一些数据
     }
   }
 
@@ -24,7 +24,8 @@ struct ItemChangeExample {
               Text('each_' + ri.item.name).fontSize(30)
             }
             .onClick(() => {
-              ri.item.name += '!'
+              this.staticItem.name += '!'
+              this.dataArr[ri.index] = this.staticItem
             })
           })
           .virtualScroll()

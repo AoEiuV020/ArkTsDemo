@@ -31,7 +31,7 @@ struct ItemChangeExample {
         Repeat<WrapItem<Item>>(this.dataArr)
           .each((ri: RepeatItem<WrapItem<Item>>) => {
             ListItem() {
-              CustomItemVIew({ ri })
+              CustomItemVIew({ wi: ri.item })
             }
             .onClick(() => {
               this.staticItem.name += '!'
@@ -46,9 +46,9 @@ struct ItemChangeExample {
 
 @ComponentV2
 export struct CustomItemVIew {
-  @Param @Require ri: RepeatItem<WrapItem<Item>>
+  @Param @Require wi: WrapItem<Item>
 
   build() {
-    Text('each_' + this.ri.item.item.name).fontSize(30)
+    Text('each_' + this.wi.item.name).fontSize(30)
   }
 }

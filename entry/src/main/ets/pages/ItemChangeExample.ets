@@ -1,20 +1,17 @@
+import { UIUtils } from '@kit.ArkUI';
 
 interface Item {
   name: string;
 }
 
 @ObservedV2
-class WrapItem<T> {
+class WrapItem<T extends object> {
   @Trace item: T
-  @Trace notifyCount: number = 0
 
   constructor(item: T) {
-    this.item = item
+    this.item = UIUtils.makeObserved(item)
   }
 
-  notify() {
-    this.notifyCount++
-  }
 }
 @Entry
 @ComponentV2
@@ -35,12 +32,11 @@ struct ItemChangeExample {
         Repeat<WrapItem<Item>>(this.dataArr)
           .each((ri: RepeatItem<WrapItem<Item>>) => {
             ListItem() {
-              Text(ri.item.notifyCount + 'each_' + ri.item.item.name).fontSize(30)
+              Text('each_' + ri.item.item.name).fontSize(30)
             }
             .onClick(() => {
               this.staticItem.name += '!'
-              this.dataArr[ri.index].item = this.staticItem
-              this.dataArr[ri.index].notify()
+              this.dataArr.splice(ri.index, 1, new WrapItem<Item>(this.staticItem))
             })
           })
           .virtualScroll()

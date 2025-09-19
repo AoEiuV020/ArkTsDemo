@@ -5,6 +5,7 @@
     "pages/LazyForEachTestPage",
     "pages/PerformanceComparisonPage",
     "pages/RepeatVirtualScrollTestPage",
-    "pages/Simple"
+    "pages/Simple",
+    "pages/ItemChangeExample"
   ]
 }

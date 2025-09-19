@@ -1,4 +1,3 @@
-import { UIUtils } from '@kit.ArkUI';
 
 interface Item {
   name: string;
@@ -9,7 +8,7 @@ class WrapItem<T extends object> {
   @Trace item: T
 
   constructor(item: T) {
-    this.item = UIUtils.makeObserved(item)
+    this.item = item
   }
 
 }

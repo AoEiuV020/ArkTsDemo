@@ -31,15 +31,24 @@ struct ItemChangeExample {
         Repeat<WrapItem<Item>>(this.dataArr)
           .each((ri: RepeatItem<WrapItem<Item>>) => {
             ListItem() {
-              Text('each_' + ri.item.item.name).fontSize(30)
+              CustomItemVIew({ ri })
             }
             .onClick(() => {
               this.staticItem.name += '!'
-              this.dataArr.splice(ri.index, 1, new WrapItem<Item>(this.staticItem))
+              this.dataArr[ri.index] = new WrapItem<Item>(this.staticItem)
             })
           })
           .virtualScroll()
       }
     }
+  }
+}
+
+@ComponentV2
+export struct CustomItemVIew {
+  @Param @Require ri: RepeatItem<WrapItem<Item>>
+
+  build() {
+    Text('each_' + this.ri.item.item.name).fontSize(30)
   }
 }

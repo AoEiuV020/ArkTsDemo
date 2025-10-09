@@ -44,7 +44,7 @@ pnpm install
 ### 1. 启动服务器
 
 ```bash
-pnpm run server
+pnpm start
 ```
 
 服务器将在 http://localhost:3001 启动

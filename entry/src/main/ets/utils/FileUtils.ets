@@ -47,12 +47,11 @@ export class FileUtils {
   }
 
   /**
-   * 复制文件到沙盒缓存目录
+   * 复制选择的文件uri到沙盒缓存目录
    */
   static async copyFileToSandbox(uri: string, context: Context): Promise<FileInfo> {
     let file: fileIo.File | null = null;
     try {
-      // 获取原始文件名（保持真实文件名）
       const fileName = FileUtils.getFileName(uri);
 
       // 打开文件并获取文件信息
@@ -119,7 +118,8 @@ export class FileUtils {
    * 获取文件名（不包含路径）
    */
   private static getFileName(uri: string): string {
-    return uri.substring(uri.lastIndexOf('/') + 1);
+    // uri需要url decode，
+    return decodeURIComponent(uri.substring(uri.lastIndexOf('/') + 1));
   }
 
   /**

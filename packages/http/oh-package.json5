@@ -2,8 +2,12 @@
   "name": "http",
   "version": "1.0.0",
   "description": "Please describe the basic information.",
-  "main": "index.ts",
+  "main": "ohosIndex.ts",
   "author": "",
   "license": "Apache-2.0",
-  "dependencies": {}
+  "dependencies": {
+    "@ohos/axios": "^2.2.6"
+  },
+  "devDependencies": {},
+  "dynamicDependencies": {}
 }

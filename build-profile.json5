@@ -38,8 +38,8 @@
       ]
     },
     {
-      "name": "exampleblanklibrary",
-      "srcPath": "./packages/exampleblanklibrary",
+      "name": "http",
+      "srcPath": "./packages/http"
     }
   ]
 }

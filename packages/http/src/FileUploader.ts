@@ -1,7 +1,7 @@
-import axios, { AxiosProgressEvent } from 'axios';
-import { FileUploadResponse, UploadFormData, FileEntity } from './types';
+import axios, { AxiosProgressEvent } from '@ohos/axios';
+import { FileEntity, FileUploadResponse, UploadFormData } from './types';
 import { DEFAULT_BASE_URL, UPLOAD_ENDPOINT } from './constants';
-import FormData from 'form-data';
+import { FormDataAdapter } from './adapter/FormDataAdapter';
 
 export class FileUploader {
   private baseURL: string;
@@ -27,13 +27,14 @@ export class FileUploader {
     formData?: UploadFormData,
     onProgress?: (progress: number) => void,
   ): Promise<FileUploadResponse> {
-    const data = new FormData();
+    // 兼容鸿蒙和nodejs中FormData的不同导包和参数名，
+    const data = FormDataAdapter.create();
 
     // 如果是 FileEntity 类型，解析使用
     if (file instanceof FileEntity) {
       data.append('file', file.file, {
         filename: file.fileName,
-        contentType: file.type,
+        type: file.type,
       });
     } else {
       // 否则直接传给 formData
@@ -50,7 +51,7 @@ export class FileUploader {
     try {
       const response = await axios.post<FileUploadResponse>(
         `${this.baseURL}${this.uploadEndpoint}`,
-        data,
+        data.getRawFormData(),
         {
           headers: {
             'Content-Type': 'multipart/form-data',

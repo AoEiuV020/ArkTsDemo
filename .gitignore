@@ -10,3 +10,14 @@
 /.clang-tidy
 **/.test
 /.appanalyzer
+
+# lock
+oh-package-lock.json5
+package-lock.json
+pnpm-lock.yaml
+
+# build, 会自动生成还总是变，
+BuildProfile.ets
+
+# 用于运行前自动更新代码以便强制触发arkts编译，解决src目录下文件变动不触发编译的问题，
+/entry/src/main/ets/date.ets

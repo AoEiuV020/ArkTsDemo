@@ -11,6 +11,14 @@
     {
       "name": "EntryAbility_label",
       "value": "label"
+    },
+    {
+      "name": "permission_internet",
+      "value": "上传使用，"
+    },
+    {
+      "name": "permission_read_media",
+      "value": "选择文件使用，"
     }
   ]
 }

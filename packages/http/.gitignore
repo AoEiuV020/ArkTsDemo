@@ -6,3 +6,6 @@
 /.test
 /dist
 /coverage
+
+# 上传的文件
+server/uploads/

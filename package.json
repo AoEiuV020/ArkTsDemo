@@ -10,7 +10,7 @@
     "build": "npm run build --workspaces",
     "build:watch": "npm run build:watch --workspaces",
     "test": "npm run test --workspaces",
-    "clean": "rimraf ./packages/*/dist",
+    "clean": "rimraf ./packages/*/dist && npm run clean --workspaces --if-present",
     "pretty": "prettier --write \"./**/*.{js,jsx,mjs,cjs,ts,tsx,json}\"",
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
     "type-check": "tsc --noEmit"

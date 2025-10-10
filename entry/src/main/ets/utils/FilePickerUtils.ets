@@ -25,7 +25,20 @@ export interface FileStatInfo {
   isSymbolicLink: boolean;
 }
 
-export class FileUtils {
+export class FilePickerUtils {
+  private static readonly CACHE_DIR = 'FilePickerUtils';
+  private static cacheIndex = 0;
+
+  static async selectAndCopyFile(context: Context): Promise<FileInfo> {
+    try {
+      // 选择文件
+      const uri = await FilePickerUtils.selectFile();
+      // 复制文件到沙盒
+      return await FilePickerUtils.copyFileToSandbox(uri, context);
+    } catch (error) {
+      throw new Error(`选择并复制文件失败: ${error}`);
+    }
+  }
   /**
    * 选择文件
    */
@@ -73,11 +86,22 @@ export class FileUtils {
         isSymbolicLink: stat.isSymbolicLink()
       };
 
-      // 创建目标目录：cacheDir/uploads/
+      // 创建目标目录：cacheDir/uploads/timestamp.index/
       const cacheDir = context.cacheDir;
-      const uploadDir = `${cacheDir}/uploads`;
+      const uploadsBaseDir = `${cacheDir}/${FilePickerUtils.CACHE_DIR}`;
 
-      // 确保uploads目录存在
+      // 生成时间戳和递增索引
+      const subDirName = FilePickerUtils.createSubDir();
+      const uploadDir = `${uploadsBaseDir}/${subDirName}`;
+
+      // 确保uploads基目录存在
+      try {
+        await fileIo.mkdir(uploadsBaseDir);
+      } catch (error) {
+        // 目录可能已存在，忽略错误
+      }
+
+      // 确保子目录存在
       try {
         await fileIo.mkdir(uploadDir);
       } catch (error) {
@@ -104,8 +128,15 @@ export class FileUtils {
     } catch (error) {
       throw new Error(`复制文件到沙盒失败: ${error}`);
     } finally {
-      await FileUtils.close(file);
+      await FilePickerUtils.close(file);
     }
+  }
+
+  private static createSubDir() {
+    const timestamp = Date.now();
+    const index = ++FilePickerUtils.cacheIndex;
+    const subDirName = `${timestamp}.${index}`;
+    return subDirName;
   }
 
   /**

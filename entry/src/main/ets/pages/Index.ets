@@ -1,4 +1,4 @@
-import { FileInfo, FileUtils } from '../utils/FileUtils';
+import { FileInfo, FilePickerUtils } from '../utils/FilePickerUtils';
 import { UploadUtils } from '../utils/UploadUtils';
 import { JSON } from '@kit.ArkTS';
 
@@ -16,7 +16,7 @@ struct Index {
     try {
       this.addLog('开始选择文件...');
 
-      const uri = await FileUtils.selectFile();
+      const uri = await FilePickerUtils.selectFile();
       this.addLog(`已选择文件: ${uri}`);
 
       // 复制文件到沙盒
@@ -25,7 +25,7 @@ struct Index {
         return;
       }
       this.addLog('正在复制文件到沙盒...');
-      const fileInfo = await FileUtils.copyFileToSandbox(uri, context);
+      const fileInfo = await FilePickerUtils.copyFileToSandbox(uri, context);
 
       this.currentFileInfo = fileInfo;
       this.addLog(`文件复制完成: ${fileInfo.fileName}`);

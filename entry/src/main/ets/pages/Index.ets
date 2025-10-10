@@ -1,17 +1,25 @@
 import { FileInfo, FilePickerUtils, SelectionResult } from '../utils/FilePickerUtils';
 import { UploadUtils } from '../utils/UploadUtils';
 import { JSON } from '@kit.ArkTS';
+import { PersistenceV2 } from '@kit.ArkUI';
 
-PersistentStorage.persistProp('serverUrl', 'http://192.168.2.45:3001');
-PersistentStorage.persistProp('uploadPath', '/upload');
+@ObservedV2
+class UploadServer {
+  @Trace base: string
+  @Trace path: string
+
+  constructor(base?: string, path?: string) {
+    this.base = base ?? 'http://192.168.2.45:3001';
+    this.path = path ?? '/upload';
+  }
+}
 @Entry
-@Component
+@ComponentV2
 struct Index {
-  @StorageLink('serverUrl') serverUrl: string = '';
-  @StorageLink('uploadPath') uploadPath: string = '';
-  @State logs: string[] = [];
-  @State isUploading: boolean = false;
-  @State currentSelectionResult: SelectionResult | null = null;
+  @Local server: UploadServer = PersistenceV2.connect(UploadServer, () => new UploadServer())!
+  @Local logs: string[] = [];
+  @Local isUploading: boolean = false;
+  @Local currentSelectionResult: SelectionResult | null = null;
 
   // 选择文件
   async selectFiles() {
@@ -64,8 +72,8 @@ struct Index {
           const result = await UploadUtils.uploadFile(
             fileInfo.sandboxPath,
             {
-              serverUrl: this.serverUrl,
-              uploadPath: this.uploadPath
+              serverUrl: this.server.base,
+              uploadPath: this.server.path
             },
             (progress: number) => {
               const percent = Math.round(progress * 100);
@@ -120,16 +128,16 @@ struct Index {
             .fontWeight(FontWeight.Medium)
             .alignSelf(ItemAlign.Start)
 
-          TextInput({ placeholder: '服务器地址', text: this.serverUrl })
+          TextInput({ placeholder: '服务器地址', text: this.server.base })
             .width('100%')
             .onChange((value: string) => {
-              this.serverUrl = value;
+              this.server.base = value;
             })
 
-          TextInput({ placeholder: '上传路径 (默认: /upload)', text: this.uploadPath })
+          TextInput({ placeholder: '上传路径 (默认: /upload)', text: this.server.path })
             .width('100%')
             .onChange((value: string) => {
-              this.uploadPath = value;
+              this.server.path = value;
             })
         }
         .alignItems(HorizontalAlign.Start)

@@ -52,7 +52,6 @@ export class FileUtils {
   static async copyFileToSandbox(uri: string, context: Context): Promise<FileInfo> {
     let file: fileIo.File | null = null;
     try {
-      const fileName = FileUtils.getFileName(uri);
 
       // 打开文件并获取文件信息
       file = fileIo.openSync(uri, fileIo.OpenMode.READ_ONLY);
@@ -86,6 +85,7 @@ export class FileUtils {
       }
 
       // 目标文件路径（保持原文件名）
+      const fileName = file.name;
       const sandboxPath = `${uploadDir}/${fileName}`;
 
       // 使用文件描述符复制文件

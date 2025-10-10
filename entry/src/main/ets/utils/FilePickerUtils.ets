@@ -14,10 +14,10 @@ export class SelectionResult {
   public fileInfoList: FileInfo[] | null;
   public readonly cacheDir: string;
 
-  constructor(uriList: string[]) {
+  constructor(uriList: string[], cacheDir: string) {
     this.uriList = uriList;
     this.fileInfoList = null;
-    this.cacheDir = FilePickerUtils.createCacheDir();
+    this.cacheDir = cacheDir;
   }
 
   public get isProcessed(): boolean {
@@ -32,21 +32,21 @@ export class FilePickerUtils {
   /**
    * 选择多个文件
    */
-  static async selectMultipleFiles(maxCount?: number): Promise<SelectionResult> {
+  static async select(maxCount?: number): Promise<SelectionResult> {
     let options = new picker.DocumentSelectOptions();
     options.maxSelectNumber = maxCount;
     let documentPicker = new picker.DocumentViewPicker();
 
     const result = await documentPicker.select(options);
 
-    return new SelectionResult(result);
+    return new SelectionResult(result, FilePickerUtils.createCacheDir());
   }
 
   /**
    * 处理选择结果，复制文件到沙盒
    * @throws
    */
-  static async processSelectionResult(result: SelectionResult): Promise<SelectionResult> {
+  static async process(result: SelectionResult): Promise<SelectionResult> {
     if (result.isProcessed) {
       return result;
     }
@@ -70,7 +70,7 @@ export class FilePickerUtils {
     return result;
   }
 
-  static createCacheDir() {
+  private static createCacheDir() {
     const cacheDir = Global.context.cacheDir;
     const baseDir = `${cacheDir}/${FilePickerUtils.BASE_DIR}`;
 
@@ -127,14 +127,6 @@ export class FilePickerUtils {
     const index = ++FilePickerUtils.cacheIndex;
     const subDirName = `${timestamp}.${index}`;
     return subDirName;
-  }
-
-  /**
-   * 从uri获取文件名（不包含路径）
-   */
-  static getFileName(uri: string): string {
-    // uri需要url decode，
-    return decodeURIComponent(uri.substring(uri.lastIndexOf('/') + 1));
   }
 
   private static async close(file: number | fileIo.File | null) {

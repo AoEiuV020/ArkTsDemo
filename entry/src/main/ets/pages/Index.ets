@@ -16,7 +16,7 @@ struct Index {
     try {
       this.addLog('开始选择文件...');
 
-      const result = await FilePickerUtils.selectMultipleFiles(5); // 最多选择5个文件
+      const result = await FilePickerUtils.select(5); // 最多选择5个文件
       this.addLog(`已选择 ${result.uriList.length} 个文件`);
 
       result.uriList.forEach((uri, index) => {
@@ -25,7 +25,7 @@ struct Index {
 
       // 处理选择结果，复制文件到沙盒
       this.addLog('正在复制文件到沙盒...');
-      const processedResult = await FilePickerUtils.processSelectionResult(result);
+      const processedResult = await FilePickerUtils.process(result);
 
       this.currentSelectionResult = processedResult;
       this.addLog(`文件复制完成，共 ${processedResult.fileInfoList?.length} 个文件`);

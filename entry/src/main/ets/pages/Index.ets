@@ -1,4 +1,4 @@
-import { FileInfo, FilePickerUtils } from '../utils/FilePickerUtils';
+import { FileInfo, FilePickerUtils, SelectionResult } from '../utils/FilePickerUtils';
 import { UploadUtils } from '../utils/UploadUtils';
 import { JSON } from '@kit.ArkTS';
 
@@ -9,29 +9,31 @@ struct Index {
   @State uploadPath: string = '/upload';
   @State logs: string[] = [];
   @State isUploading: boolean = false;
-  @State currentFileInfo: FileInfo | null = null;
+  @State currentSelectionResult: SelectionResult | null = null;
 
   // 选择文件
-  async selectFile() {
+  async selectFiles() {
     try {
       this.addLog('开始选择文件...');
 
-      const uri = await FilePickerUtils.selectFile();
-      this.addLog(`已选择文件: ${uri}`);
+      const result = await FilePickerUtils.selectMultipleFiles(5); // 最多选择5个文件
+      this.addLog(`已选择 ${result.uriList.length} 个文件`);
 
-      // 复制文件到沙盒
-      const context = this.getUIContext().getHostContext();
-      if (!context) {
-        return;
-      }
+      result.uriList.forEach((uri, index) => {
+        this.addLog(`文件${index + 1}: ${uri}`);
+      });
+
+      // 处理选择结果，复制文件到沙盒
       this.addLog('正在复制文件到沙盒...');
-      const fileInfo = await FilePickerUtils.copyFileToSandbox(uri, context);
+      const processedResult = await FilePickerUtils.processSelectionResult(result);
 
-      this.currentFileInfo = fileInfo;
-      this.addLog(`文件复制完成: ${fileInfo.fileName}`);
-      this.addLog(`原始URI: ${fileInfo.originalUri}`);
-      this.addLog(`沙盒路径: ${fileInfo.sandboxPath}`);
-      this.addLog(`文件信息: ${JSON.stringify(fileInfo.stat)}`);
+      this.currentSelectionResult = processedResult;
+      this.addLog(`文件复制完成，共 ${processedResult.fileInfoList?.length} 个文件`);
+      this.addLog(`缓存目录: ${processedResult.cacheDir}`);
+
+      processedResult.fileInfoList?.forEach((fileInfo, index) => {
+        this.addLog(`文件${index + 1}: ${fileInfo.fileName} (${(fileInfo.stat.size / 1024).toFixed(2)} KB)`);
+      });
 
     } catch (error) {
       this.addLog(`选择文件失败: ${error}`);
@@ -39,8 +41,8 @@ struct Index {
   }
 
   // 上传文件
-  async uploadFile() {
-    if (!this.currentFileInfo) {
+  async uploadFiles() {
+    if (!this.currentSelectionResult || !this.currentSelectionResult.fileInfoList) {
       this.addLog('请先选择文件');
       return;
     }
@@ -49,26 +51,48 @@ struct Index {
     this.addLog('开始上传文件...');
 
     try {
-      const result = await UploadUtils.uploadFile(
-        this.currentFileInfo.sandboxPath,
-        {
-          serverUrl: this.serverUrl,
-          uploadPath: this.uploadPath
-        },
-        (progress: number) => {
-          const percent = Math.round(progress * 100);
-          this.addLog(`上传进度: ${percent}%`);
-        }
-      );
+      let successCount = 0;
+      let failCount = 0;
 
-      if (result.success) {
-        this.addLog('上传成功!');
-        this.addLog(`服务器响应: ${JSON.stringify(result.data, null, 2)}`);
-      } else {
-        this.addLog(`上传失败: ${result.message}`);
-        if (result.error) {
-          this.addLog(`错误详情: ${result.error}`);
+      for (let i = 0; i < this.currentSelectionResult.fileInfoList.length; i++) {
+        const fileInfo = this.currentSelectionResult.fileInfoList[i];
+        this.addLog(`正在上传第 ${i + 1} 个文件: ${fileInfo.fileName}...`);
+
+        try {
+          const result = await UploadUtils.uploadFile(
+            fileInfo.sandboxPath,
+            {
+              serverUrl: this.serverUrl,
+              uploadPath: this.uploadPath
+            },
+            (progress: number) => {
+              const percent = Math.round(progress * 100);
+              this.addLog(`文件 ${fileInfo.fileName} 上传进度: ${percent}%`);
+            }
+          );
+
+          if (result.success) {
+            this.addLog(`文件 ${fileInfo.fileName} 上传成功!`);
+            this.addLog(JSON.stringify(result));
+            successCount++;
+          } else {
+            this.addLog(`文件 ${fileInfo.fileName} 上传失败: ${result.message}`);
+            failCount++;
+          }
+        } catch (error) {
+          this.addLog(`文件 ${fileInfo.fileName} 上传失败: ${error}`);
+          failCount++;
         }
+      }
+
+      this.addLog(`上传完成！成功: ${successCount}, 失败: ${failCount}`);
+
+      if (successCount > 0) {
+        // 上传成功后删除缓存
+        this.addLog('正在清理缓存文件...');
+        await FilePickerUtils.delete(this.currentSelectionResult);
+        this.currentSelectionResult = null;
+        this.addLog('缓存文件已清理');
       }
     } catch (error) {
       this.addLog(`上传失败: ${error}`);
@@ -118,15 +142,15 @@ struct Index {
             .flexGrow(1)
             .height(48)
             .onClick(() => {
-              this.selectFile();
+              this.selectFiles();
             })
 
           Button('上传文件')
             .flexGrow(1)
             .height(48)
-            .enabled(!this.isUploading && !!this.currentFileInfo)
+            .enabled(!this.isUploading && !!this.currentSelectionResult?.fileInfoList)
             .onClick(() => {
-              this.uploadFile();
+              this.uploadFiles();
             })
 
           Button('清空日志')
@@ -138,17 +162,20 @@ struct Index {
         .width('100%')
 
         // 文件信息摘要
-        if (this.currentFileInfo) {
+        if (this.currentSelectionResult?.fileInfoList) {
           Column({ space: 4 }) {
-            Text('当前文件')
+            Text(`已选择文件 (${this.currentSelectionResult.fileInfoList.length})`)
               .fontSize(16)
               .fontWeight(FontWeight.Medium)
               .alignSelf(ItemAlign.Start)
 
-            Text(`${this.currentFileInfo.fileName} (${(this.currentFileInfo.stat.size / 1024).toFixed(2)} KB)`)
-              .fontSize(14)
-              .fontColor('#666666')
-              .alignSelf(ItemAlign.Start)
+            ForEach(this.currentSelectionResult.fileInfoList, (fileInfo: FileInfo, index: number) => {
+              Text(`${index + 1}. ${fileInfo.fileName} (${(fileInfo.stat.size / 1024).toFixed(2)} KB)`)
+                .fontSize(14)
+                .fontColor('#666666')
+                .alignSelf(ItemAlign.Start)
+                .margin({ left: 8 })
+            })
           }
           .alignItems(HorizontalAlign.Start)
           .width('100%')

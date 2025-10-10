@@ -1,116 +1,121 @@
 import picker from '@ohos.file.picker';
 import { fileIo } from '@kit.CoreFileKit';
+import { Global } from './Global';
 
 export interface FileInfo {
   originalUri: string;
   sandboxPath: string;
   fileName: string;
-  stat: FileStatInfo;
+  stat: fileIo.Stat;
 }
 
-export interface FileStatInfo {
-  size: number;
-  mode: number;
-  uid: number;
-  gid: number;
-  atime: number;
-  mtime: number;
-  ctime: number;
-  isFile: boolean;
-  isDirectory: boolean;
-  isBlockDevice: boolean;
-  isCharacterDevice: boolean;
-  isFIFO: boolean;
-  isSocket: boolean;
-  isSymbolicLink: boolean;
+export class SelectionResult {
+  public readonly uriList: string[];
+  public fileInfoList: FileInfo[] | null;
+  public readonly cacheDir: string;
+
+  constructor(uriList: string[]) {
+    this.uriList = uriList;
+    this.fileInfoList = null;
+    this.cacheDir = FilePickerUtils.createCacheDir();
+  }
+
+  public get isProcessed(): boolean {
+    return this.fileInfoList != null;
+  }
 }
 
 export class FilePickerUtils {
-  private static readonly CACHE_DIR = 'FilePickerUtils';
+  private static readonly BASE_DIR = 'FilePicker';
   private static cacheIndex = 0;
 
-  static async selectAndCopyFile(context: Context): Promise<FileInfo> {
-    try {
-      // 选择文件
-      const uri = await FilePickerUtils.selectFile();
-      // 复制文件到沙盒
-      return await FilePickerUtils.copyFileToSandbox(uri, context);
-    } catch (error) {
-      throw new Error(`选择并复制文件失败: ${error}`);
-    }
-  }
   /**
-   * 选择文件
+   * 选择多个文件
    */
-  static async selectFile(): Promise<string> {
+  static async selectMultipleFiles(maxCount?: number): Promise<SelectionResult> {
     try {
-      let DocumentSelectOptions = new picker.DocumentSelectOptions();
+      let options = new picker.DocumentSelectOptions();
+      options.maxSelectNumber = maxCount;
       let documentPicker = new picker.DocumentViewPicker();
 
-      const documentSelectResult = await documentPicker.select(DocumentSelectOptions);
+      const result = await documentPicker.select(options);
 
-      if (documentSelectResult && documentSelectResult.length > 0) {
-        return documentSelectResult[0];
-      }
-
-      throw new Error('未选择文件');
+      return new SelectionResult(result);
     } catch (error) {
       throw new Error(`选择文件失败: ${error}`);
     }
   }
 
   /**
-   * 复制选择的文件uri到沙盒缓存目录
+   * 处理选择结果，复制文件到沙盒
    */
-  static async copyFileToSandbox(uri: string, context: Context): Promise<FileInfo> {
+  static async processSelectionResult(result: SelectionResult): Promise<SelectionResult> {
+    if (result.isProcessed) {
+      return result;
+    }
+
+    try {
+      const fileInfoList: FileInfo[] = [];
+
+      // 创建基础缓存目录结构
+      const targetDir = result.cacheDir;
+
+      // 确保目标目录存在
+      await fileIo.mkdir(targetDir, true);
+
+      // 处理每个文件
+      for (const uri of result.uriList) {
+        const fileInfo = await FilePickerUtils.copyFileToTargetDir(uri, targetDir);
+        fileInfoList.push(fileInfo);
+      }
+
+      result.fileInfoList = fileInfoList;
+
+      return result;
+    } catch (error) {
+      throw new Error(`处理选择结果失败: ${error}`);
+    }
+  }
+
+  static createCacheDir() {
+    const cacheDir = Global.context.cacheDir;
+    const baseDir = `${cacheDir}/${FilePickerUtils.BASE_DIR}`;
+
+    // 生成唯一的子目录名
+    const subDirName = FilePickerUtils.createSubDir();
+    const targetDir = `${baseDir}/${subDirName}`;
+    return targetDir;
+  }
+
+  /**
+   * 删除选择结果的缓存目录
+   */
+  static async delete(result: SelectionResult): Promise<void> {
+    if (!result.isProcessed) {
+      return;
+    }
+
+    try {
+      await fileIo.rmdir(result.cacheDir);
+      result.fileInfoList = null;
+    } catch (error) {
+      throw new Error(`删除缓存目录失败: ${error}`);
+    }
+  }
+
+  /**
+   * 复制文件到指定目录
+   */
+  private static async copyFileToTargetDir(uri: string, targetDir: string): Promise<FileInfo> {
     let file: fileIo.File | null = null;
     try {
-
       // 打开文件并获取文件信息
       file = await fileIo.open(uri, fileIo.OpenMode.READ_ONLY);
       const stat = await fileIo.stat(file.fd);
-      const fileInfo: FileStatInfo = {
-        size: stat.size,
-        mode: stat.mode,
-        uid: stat.uid,
-        gid: stat.gid,
-        atime: stat.atime,
-        mtime: stat.mtime,
-        ctime: stat.ctime,
-        isFile: stat.isFile(),
-        isDirectory: stat.isDirectory(),
-        isBlockDevice: stat.isBlockDevice(),
-        isCharacterDevice: stat.isCharacterDevice(),
-        isFIFO: stat.isFIFO(),
-        isSocket: stat.isSocket(),
-        isSymbolicLink: stat.isSymbolicLink()
-      };
-
-      // 创建目标目录：cacheDir/uploads/timestamp.index/
-      const cacheDir = context.cacheDir;
-      const uploadsBaseDir = `${cacheDir}/${FilePickerUtils.CACHE_DIR}`;
-
-      // 生成时间戳和递增索引
-      const subDirName = FilePickerUtils.createSubDir();
-      const uploadDir = `${uploadsBaseDir}/${subDirName}`;
-
-      // 确保uploads基目录存在
-      try {
-        await fileIo.mkdir(uploadsBaseDir);
-      } catch (error) {
-        // 目录可能已存在，忽略错误
-      }
-
-      // 确保子目录存在
-      try {
-        await fileIo.mkdir(uploadDir);
-      } catch (error) {
-        // 目录可能已存在，忽略错误
-      }
 
       // 目标文件路径（保持原文件名）
       const fileName = file.name;
-      const sandboxPath = `${uploadDir}/${fileName}`;
+      const sandboxPath = `${targetDir}/${fileName}`;
 
       // 使用文件描述符复制文件
       try {
@@ -123,10 +128,10 @@ export class FilePickerUtils {
         originalUri: uri,
         sandboxPath: sandboxPath,
         fileName: fileName,
-        stat: fileInfo,
+        stat: stat,
       };
     } catch (error) {
-      throw new Error(`复制文件到沙盒失败: ${error}`);
+      throw new Error(`复制文件失败: ${error}`);
     } finally {
       await FilePickerUtils.close(file);
     }

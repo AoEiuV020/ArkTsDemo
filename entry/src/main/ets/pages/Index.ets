@@ -20,8 +20,11 @@ struct Index {
       this.addLog(`已选择文件: ${uri}`);
 
       // 复制文件到沙盒
+      const context = this.getUIContext().getHostContext();
+      if (!context) {
+        return;
+      }
       this.addLog('正在复制文件到沙盒...');
-      const context = getContext(this);
       const fileInfo = await FileUtils.copyFileToSandbox(uri, context);
 
       this.currentFileInfo = fileInfo;

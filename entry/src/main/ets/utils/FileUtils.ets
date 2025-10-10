@@ -54,8 +54,8 @@ export class FileUtils {
     try {
 
       // 打开文件并获取文件信息
-      file = fileIo.openSync(uri, fileIo.OpenMode.READ_ONLY);
-      const stat = fileIo.statSync(file.fd);
+      file = await fileIo.open(uri, fileIo.OpenMode.READ_ONLY);
+      const stat = await fileIo.stat(file.fd);
       const fileInfo: FileStatInfo = {
         size: stat.size,
         mode: stat.mode,
@@ -79,7 +79,7 @@ export class FileUtils {
 
       // 确保uploads目录存在
       try {
-        fileIo.mkdirSync(uploadDir);
+        await fileIo.mkdir(uploadDir);
       } catch (error) {
         // 目录可能已存在，忽略错误
       }
@@ -90,7 +90,7 @@ export class FileUtils {
 
       // 使用文件描述符复制文件
       try {
-        fileIo.copyFileSync(file.fd, sandboxPath);
+        await fileIo.copyFile(file.fd, sandboxPath);
       } catch (error) {
         throw new Error(`复制文件失败: ${error}`);
       }
@@ -104,58 +104,26 @@ export class FileUtils {
     } catch (error) {
       throw new Error(`复制文件到沙盒失败: ${error}`);
     } finally {
-      if (file) {
-        try {
-          fileIo.closeSync(file);
-        } catch (e) {
-          console.error('关闭文件失败:', e);
-        }
-      }
+      await FileUtils.close(file);
     }
   }
 
   /**
-   * 获取文件名（不包含路径）
+   * 从uri获取文件名（不包含路径）
    */
-  private static getFileName(uri: string): string {
+  static getFileName(uri: string): string {
     // uri需要url decode，
     return decodeURIComponent(uri.substring(uri.lastIndexOf('/') + 1));
   }
 
-  /**
-   * 获取文件信息（大小等），只open一次文件
-   */
-  private static getFileInfo(uri: string): FileStatInfo {
-    let file: fileIo.File | null = null;
-    try {
-      file = fileIo.openSync(uri, fileIo.OpenMode.READ_ONLY);
-      const stat = fileIo.statSync(file.fd);
-      return {
-        size: stat.size,
-        mode: stat.mode,
-        uid: stat.uid,
-        gid: stat.gid,
-        atime: stat.atime,
-        mtime: stat.mtime,
-        ctime: stat.ctime,
-        isFile: stat.isFile(),
-        isDirectory: stat.isDirectory(),
-        isBlockDevice: stat.isBlockDevice(),
-        isCharacterDevice: stat.isCharacterDevice(),
-        isFIFO: stat.isFIFO(),
-        isSocket: stat.isSocket(),
-        isSymbolicLink: stat.isSymbolicLink()
-      };
-    } catch (error) {
-      throw new Error(`获取文件信息失败: ${error}`);
-    } finally {
-      if (file) {
-        try {
-          fileIo.closeSync(file);
-        } catch (e) {
-          console.error('关闭文件失败:', e);
-        }
+  private static async close(file: number | fileIo.File | null) {
+    if (file) {
+      try {
+        await fileIo.close(file);
+      } catch (e) {
+        console.error('关闭文件失败:', e);
       }
     }
   }
+
 }

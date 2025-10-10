@@ -33,48 +33,41 @@ export class FilePickerUtils {
    * 选择多个文件
    */
   static async selectMultipleFiles(maxCount?: number): Promise<SelectionResult> {
-    try {
-      let options = new picker.DocumentSelectOptions();
-      options.maxSelectNumber = maxCount;
-      let documentPicker = new picker.DocumentViewPicker();
+    let options = new picker.DocumentSelectOptions();
+    options.maxSelectNumber = maxCount;
+    let documentPicker = new picker.DocumentViewPicker();
 
-      const result = await documentPicker.select(options);
+    const result = await documentPicker.select(options);
 
-      return new SelectionResult(result);
-    } catch (error) {
-      throw new Error(`选择文件失败: ${error}`);
-    }
+    return new SelectionResult(result);
   }
 
   /**
    * 处理选择结果，复制文件到沙盒
+   * @throws
    */
   static async processSelectionResult(result: SelectionResult): Promise<SelectionResult> {
     if (result.isProcessed) {
       return result;
     }
 
-    try {
-      const fileInfoList: FileInfo[] = [];
+    const fileInfoList: FileInfo[] = [];
 
-      // 创建基础缓存目录结构
-      const targetDir = result.cacheDir;
+    // 创建基础缓存目录结构
+    const targetDir = result.cacheDir;
 
-      // 确保目标目录存在
-      await fileIo.mkdir(targetDir, true);
+    // 确保目标目录存在
+    await fileIo.mkdir(targetDir, true);
 
-      // 处理每个文件
-      for (const uri of result.uriList) {
-        const fileInfo = await FilePickerUtils.copyFileToTargetDir(uri, targetDir);
-        fileInfoList.push(fileInfo);
-      }
-
-      result.fileInfoList = fileInfoList;
-
-      return result;
-    } catch (error) {
-      throw new Error(`处理选择结果失败: ${error}`);
+    // 处理每个文件
+    for (const uri of result.uriList) {
+      const fileInfo = await FilePickerUtils.copyFileToTargetDir(uri, targetDir);
+      fileInfoList.push(fileInfo);
     }
+
+    result.fileInfoList = fileInfoList;
+
+    return result;
   }
 
   static createCacheDir() {
@@ -89,22 +82,20 @@ export class FilePickerUtils {
 
   /**
    * 删除选择结果的缓存目录
+   * @throws
    */
   static async delete(result: SelectionResult): Promise<void> {
     if (!result.isProcessed) {
       return;
     }
 
-    try {
-      await fileIo.rmdir(result.cacheDir);
-      result.fileInfoList = null;
-    } catch (error) {
-      throw new Error(`删除缓存目录失败: ${error}`);
-    }
+    await fileIo.rmdir(result.cacheDir);
+    result.fileInfoList = null;
   }
 
   /**
    * 复制文件到指定目录
+   * @throws
    */
   private static async copyFileToTargetDir(uri: string, targetDir: string): Promise<FileInfo> {
     let file: fileIo.File | null = null;
@@ -118,11 +109,7 @@ export class FilePickerUtils {
       const sandboxPath = `${targetDir}/${fileName}`;
 
       // 使用文件描述符复制文件
-      try {
-        await fileIo.copyFile(file.fd, sandboxPath);
-      } catch (error) {
-        throw new Error(`复制文件失败: ${error}`);
-      }
+      await fileIo.copyFile(file.fd, sandboxPath);
 
       return {
         originalUri: uri,
@@ -130,8 +117,6 @@ export class FilePickerUtils {
         fileName: fileName,
         stat: stat,
       };
-    } catch (error) {
-      throw new Error(`复制文件失败: ${error}`);
     } finally {
       await FilePickerUtils.close(file);
     }

@@ -1,6 +1,6 @@
-import { FileUploader } from '../src/FileUploader';
-import { FileEntity } from '../src/types';
-import { DEFAULT_BASE_URL } from '../src/constants';
+import { FileUploader } from '../';
+import { FileEntity } from '../';
+import { DEFAULT_BASE_URL } from '../';
 import fs from 'fs';
 import path from 'path';
 

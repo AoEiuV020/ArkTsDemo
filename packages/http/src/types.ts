@@ -19,6 +19,7 @@ export interface FileUploadResponse {
       mimetype: string;
       size: number;
       path: string;
+      fieldName: string; // 表单字段名
     };
     formData: Record<string, any>;
   };

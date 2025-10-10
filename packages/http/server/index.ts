@@ -54,30 +54,69 @@ app.use((req, res, next) => {
 });
 
 // 文件上传接口
-app.post(UPLOAD_ENDPOINT, upload.single('file'), (req, res) => {
+app.post(UPLOAD_ENDPOINT, upload.any(), (req, res) => {
   try {
+    console.log('📨 收到文件上传请求');
+    console.log('🔗 请求URL:', req.url);
+    console.log('📋 表单数据:', req.body);
+
+    // 获取文件信息 - 支持任意字段名
+    const files = req.files as Express.Multer.File[];
+    const uploadedFile = files && files.length > 0 ? files[0] : null;
+    if (uploadedFile) {
+      console.log('📁 获取到文件信息:');
+      console.log('  - 文件参数key:', uploadedFile.fieldname);
+      console.log('  - 原始文件名:', uploadedFile.originalname);
+      console.log('  - 文件大小:', uploadedFile.size, 'bytes');
+      console.log('  - 文件类型:', uploadedFile.mimetype);
+      console.log('  - 保存路径:', uploadedFile.path);
+    } else {
+      console.log('⚠️  未检测到文件');
+    }
+
     // 设置响应编码
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
+
+    // 检查是否有文件上传
+    if (!uploadedFile) {
+      const errorResponse: FileUploadResponse = {
+        success: false,
+        message: '未检测到文件，请选择文件后再上传',
+        error: 'No file detected',
+      };
+      console.log('❌ 上传失败 - 未检测到文件');
+      res.status(400).json(errorResponse);
+      return;
+    }
 
     const response: FileUploadResponse = {
       success: true,
       message: '文件上传成功',
       data: {
         formData: req.body,
-        file: req.file
+        file: uploadedFile
           ? {
-              receivedName: req.file.originalname, // 服务器收到的文件名
-              savedName: req.file.filename, // 服务器保存的文件名
-              mimetype: req.file.mimetype,
-              size: req.file.size,
-              path: req.file.path,
+              receivedName: uploadedFile.originalname, // 服务器收到的文件名
+              savedName: uploadedFile.filename, // 服务器保存的文件名
+              mimetype: uploadedFile.mimetype,
+              size: uploadedFile.size,
+              path: uploadedFile.path,
+              fieldName: uploadedFile.fieldname, // 添加字段名信息
             }
           : undefined,
       },
     };
 
+    console.log('✅ 文件保存成功!');
+    if (uploadedFile) {
+      console.log('💾 保存详情:');
+      console.log('  - 文件名:', uploadedFile.filename);
+      console.log('  - 保存位置:', uploadedFile.path);
+    }
+
     res.json(response);
   } catch (error) {
+    console.log('❌ 文件上传失败:', error);
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     const response: FileUploadResponse = {
       success: false,

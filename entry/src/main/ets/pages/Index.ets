@@ -2,11 +2,13 @@ import { FileInfo, FilePickerUtils, SelectionResult } from '../utils/FilePickerU
 import { UploadUtils } from '../utils/UploadUtils';
 import { JSON } from '@kit.ArkTS';
 
+PersistentStorage.persistProp('serverUrl', 'http://192.168.2.45:3001');
+PersistentStorage.persistProp('uploadPath', '/upload');
 @Entry
 @Component
 struct Index {
-  @State serverUrl: string = 'http://192.168.2.45:3001';
-  @State uploadPath: string = '/upload';
+  @StorageLink('serverUrl') serverUrl: string = '';
+  @StorageLink('uploadPath') uploadPath: string = '';
   @State logs: string[] = [];
   @State isUploading: boolean = false;
   @State currentSelectionResult: SelectionResult | null = null;

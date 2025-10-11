@@ -104,6 +104,23 @@ app.post(UPLOAD_ENDPOINT, upload.any(), (req, res) => {
               fieldName: uploadedFile.fieldname, // 添加字段名信息
             }
           : undefined,
+        requestInfo: {
+          method: req.method,
+          url: req.url,
+          path: req.path,
+          query: req.query,
+          headers: {
+            'user-agent': req.get('User-Agent'),
+            'content-type': req.get('Content-Type'),
+            'content-length': req.get('Content-Length'),
+            'host': req.get('Host'),
+            'origin': req.get('Origin'),
+            'referer': req.get('Referer'),
+          },
+          ip: req.ip || req.connection?.remoteAddress || req.socket?.remoteAddress || 'unknown',
+          protocol: req.protocol,
+          timestamp: new Date().toISOString(),
+        },
       },
     };
 

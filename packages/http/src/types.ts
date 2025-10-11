@@ -22,6 +22,16 @@ export interface FileUploadResponse {
       fieldName: string; // 表单字段名
     };
     formData: Record<string, any>;
+    requestInfo?: {
+      method: string;
+      url: string;
+      path: string;
+      query: Record<string, any>;
+      headers: Record<string, string | undefined>;
+      ip: string;
+      protocol: string;
+      timestamp: string;
+    };
   };
   error?: string;
 }

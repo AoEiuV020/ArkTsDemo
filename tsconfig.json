@@ -37,7 +37,7 @@
     "types": ["node", "vitest/globals"],
     "disableSizeLimit": true
   },
-  "include": ["packages/*/src/**/*", "packages/*/index.ts", "packages/*/__tests__/**/*"],
+  "include": ["packages/*/src/**/*.ts", "packages/*/index.ts", "packages/*/__tests__/*.ts"],
   "exclude": [
     "node_modules",
     "oh_modules",

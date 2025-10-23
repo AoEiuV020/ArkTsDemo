@@ -1,0 +1,19 @@
+node_modules/
+oh_modules/
+dist/
+build/
+coverage/
+*.log
+
+# 鸿蒙相关文件
+.preview/
+/oh_packages/
+/entry/
+/AppScope/
+*.json5
+*.ets
+hvigorfile.ts
+build-profile.json5
+BuildProfile.ets
+oh-package.json5
+oh-package-lock.json5

@@ -1,39 +1,30 @@
+// 在List容器组件中使用Repeat
 @Entry
 @ComponentV2
-struct Index {
-  @Local flag: boolean = true;
+  // 推荐使用V2装饰器
+struct RepeatExample {
+  @Local dataArr: Array<string> = []; // 数据源
 
-  build() {
-    Column() {
-      Child({
-        flag: this.flag,
-        changeFactory: () => {
-          this.flag = false;
-        }
-      }) {
-        Text(`content`)
-      }
+  aboutToAppear(): void {
+    for (let i = 0; i < 50; i++) {
+      this.dataArr.push(`data_${i}`); // 为数组添加一些数据
     }
   }
-}
-
-@ComponentV2
-struct Child {
-  @Param flag: boolean = true;
-  @Event changeFactory?: () => void = undefined;
-  // 带上@Require就会崩溃，坑爹，
-  // https://developer.huawei.com/consumer/cn/forum/topic/0203192451040831346
-  // @Require
-  @BuilderParam content: () => void
 
   build() {
     Column() {
-      Text(`${this.flag}`)
-      Button('change')
-        .onClick(() => {
-          this.changeFactory?.();
-        })
-      this.content();
+      List() {
+        Repeat<string>(this.dataArr)
+          .each((ri: RepeatItem<string>) => {
+            ListItem() {
+              Text('each_' + ri.item).fontSize(30)
+            }
+          })
+          .virtualScroll({ totalCount: this.dataArr.length }) // 打开懒加载，totalCount为期望加载的数据长度
+      }
+      .cachedCount(2) // 容器组件的预加载区域大小
+      .height('70%')
+      .border({ width: 1 }) // 边框
     }
   }
 }

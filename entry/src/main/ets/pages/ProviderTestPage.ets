@@ -33,14 +33,18 @@ struct ItemComponent {
   @Param @Require ri: RepeatItem<Item>
   @Provider('ri') riProvider: RepeatItem<Item> = this.ri
 
+  get item(): Item {
+    return this.ri.item
+  }
+
   build() {
     Row() {
-      Text(`${this.ri.index}/${this.ri.item.index}/${this.riProvider.item.index}/`).fontSize(30)
+      Text(`${this.ri.index}/${this.item.index}/${this.riProvider.item.index}/`).fontSize(30)
       ChildComponent()
     }
     .onClick(() => {
-      console.log(`click ${this.riProvider.item.name}`);
-      this.riProvider.item.click++
+      console.log(`click ${this.item.name}`);
+      this.item.click++
     })
   }
 }
@@ -49,8 +53,12 @@ struct ItemComponent {
 struct ChildComponent {
   @Consumer() ri?: RepeatItem<Item>
 
+  get item(): Item {
+    return this.ri!.item
+  }
+
   build() {
-    Text(`${this.ri!.item.index}/${this.ri!.item.click}`).fontSize(30)
+    Text(`${this.item.index}/${this.item.click}`).fontSize(30)
   }
 }
 

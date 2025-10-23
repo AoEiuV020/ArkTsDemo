@@ -31,26 +31,26 @@ struct ProviderTestPage {
 @ComponentV2
 struct ItemComponent {
   @Param @Require ri: RepeatItem<Item>
-  @Provider() item: Item = this.ri.item
+  @Provider('ri') riProvider: RepeatItem<Item> = this.ri
 
   build() {
     Row() {
-      Text(`${this.ri.index}/${this.ri.item.index}/${this.item.index}/`).fontSize(30)
+      Text(`${this.ri.index}/${this.ri.item.index}/${this.riProvider.item.index}/`).fontSize(30)
       ChildComponent()
     }
     .onClick(() => {
-      console.log(`click ${this.item.name}`);
-      this.item.click++
+      console.log(`click ${this.riProvider.item.name}`);
+      this.riProvider.item.click++
     })
   }
 }
 
 @ComponentV2
 struct ChildComponent {
-  @Consumer() item?: Item
+  @Consumer() ri?: RepeatItem<Item>
 
   build() {
-    Text(`${this.item!.index}/${this.item!.click}`).fontSize(30)
+    Text(`${this.ri!.item.index}/${this.ri!.item.click}`).fontSize(30)
   }
 }
 

@@ -20,6 +20,16 @@ struct Index {
           })
         })
 
+      Button('ProviderTestPage')
+        .width(200)
+        .height(50)
+        .margin({ bottom: 20 })
+        .onClick(() => {
+          router.pushUrl({
+            url: 'pages/ProviderTestPage'
+          })
+        })
+
       Button('ItemChangeExample')
         .width(200)
         .height(50)

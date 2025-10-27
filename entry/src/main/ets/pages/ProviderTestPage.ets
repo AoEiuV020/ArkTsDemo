@@ -36,6 +36,16 @@ struct ItemComponent {
   @Param @Require item: Item
   @Provider('item') itemProvider: Item = this.item
 
+  @Monitor('item')
+  onItemChanged(i: IMonitor) {
+    console.log(`onItemChanged(${i.value<Item>()!.before.index} => ${i.value<Item>()!.now.index}`)
+  }
+
+  @Monitor('itemProvider')
+  onItemProviderChanged(i: IMonitor) {
+    console.log(`onItemProviderChanged(${i.value<Item>()!.before.index} => ${i.value<Item>()!.now.index}`)
+  }
+
   build() {
     Row() {
       Text(`${this.index}/${this.item.index}/${this.itemProvider.index}/`).fontSize(30)

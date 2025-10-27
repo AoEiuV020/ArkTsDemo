@@ -15,9 +15,7 @@ struct ProviderTestPage {
         Repeat<Item>(this.dataArr)
           .each((ri: RepeatItem<Item>) => {
             ListItem() {
-              ItemComponent({
-                index: ri.index, item: ri.item,
-              })
+              ItemComponent({ ri: ri })
             }
           })
           .virtualScroll({ totalCount: this.dataArr.length }) // 打开懒加载，totalCount为期望加载的数据长度
@@ -32,24 +30,36 @@ struct ProviderTestPage {
 
 @ComponentV2
 struct ItemComponent {
-  @Param @Require index: number
-  @Param @Require item: Item
-  @Provider('item') itemProvider: Item = this.item
+  @Param @Require ri: RepeatItem<Item>
+  @Provider('ri') riProvider: RepeatItem<Item> = this.ri
 
-  @Monitor('item')
-  onItemChanged(i: IMonitor) {
-    console.log(`onItemChanged(${i.value<Item>()!.before.index} => ${i.value<Item>()!.now.index}`)
-    this.itemProvider = i.value<Item>()!.now
+  get item(): Item {
+    return this.ri.item
   }
 
-  @Monitor('itemProvider')
-  onItemProviderChanged(i: IMonitor) {
-    console.log(`onItemProviderChanged(${i.value<Item>()!.before.index} => ${i.value<Item>()!.now.index}`)
+  @Monitor('ri')
+  riChanged(i: IMonitor) {
+    console.log(`riChanged: ${i.value<RepeatItem<Item>>()!.before.index} => ${i.value<RepeatItem<Item>>()!.now.index}`)
+  }
+
+  @Monitor('ri.index')
+  riIndexChanged(i: IMonitor) {
+    console.log(`riIndexChanged: ${i.value<number>()!.before} => ${i.value<number>()!.now}`)
+  }
+
+  @Monitor('ri.item')
+  riItemChanged(i: IMonitor) {
+    console.log(`riItemChanged: ${i.value<Item>()!.before.index} => ${i.value<Item>()!.now.index}`)
+  }
+
+  @Monitor('ri.item.index')
+  riItemIndexChanged(i: IMonitor) {
+    console.log(`riItemIndexChanged: ${i.value<number>()!.before} => ${i.value<number>()!.now}`)
   }
 
   build() {
     Row() {
-      Text(`${this.index}/${this.item.index}/${this.itemProvider.index}/`).fontSize(30)
+      Text(`${this.ri.index}/${this.item.index}/${this.riProvider.item.index}/`).fontSize(30)
       ChildComponent()
     }
     .onClick(() => {
@@ -61,10 +71,14 @@ struct ItemComponent {
 
 @ComponentV2
 struct ChildComponent {
-  @Consumer() item?: Item
+  @Consumer() ri?: RepeatItem<Item>
+
+  get item(): Item {
+    return this.ri!.item
+  }
 
   build() {
-    Text(`${this.item!.index}/${this.item!.click}`).fontSize(30)
+    Text(`${this.item.index}/${this.item.click}`).fontSize(30)
   }
 }
 

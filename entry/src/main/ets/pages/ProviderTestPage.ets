@@ -39,6 +39,7 @@ struct ItemComponent {
   @Monitor('item')
   onItemChanged(i: IMonitor) {
     console.log(`onItemChanged(${i.value<Item>()!.before.index} => ${i.value<Item>()!.now.index}`)
+    this.itemProvider = i.value<Item>()!.now
   }
 
   @Monitor('itemProvider')

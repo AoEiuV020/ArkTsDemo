@@ -15,7 +15,9 @@ struct ProviderTestPage {
         Repeat<Item>(this.dataArr)
           .each((ri: RepeatItem<Item>) => {
             ListItem() {
-              ItemComponent({ ri: ri })
+              ItemComponent({
+                index: ri.index, item: ri.item,
+              })
             }
           })
           .virtualScroll({ totalCount: this.dataArr.length }) // 打开懒加载，totalCount为期望加载的数据长度
@@ -30,16 +32,13 @@ struct ProviderTestPage {
 
 @ComponentV2
 struct ItemComponent {
-  @Param @Require ri: RepeatItem<Item>
-  @Provider('ri') riProvider: RepeatItem<Item> = this.ri
-
-  get item(): Item {
-    return this.ri.item
-  }
+  @Param @Require index: number
+  @Param @Require item: Item
+  @Provider('item') itemProvider: Item = this.item
 
   build() {
     Row() {
-      Text(`${this.ri.index}/${this.item.index}/${this.riProvider.item.index}/`).fontSize(30)
+      Text(`${this.index}/${this.item.index}/${this.itemProvider.index}/`).fontSize(30)
       ChildComponent()
     }
     .onClick(() => {
@@ -51,14 +50,10 @@ struct ItemComponent {
 
 @ComponentV2
 struct ChildComponent {
-  @Consumer() ri?: RepeatItem<Item>
-
-  get item(): Item {
-    return this.ri!.item
-  }
+  @Consumer() item?: Item
 
   build() {
-    Text(`${this.item.index}/${this.item.click}`).fontSize(30)
+    Text(`${this.item!.index}/${this.item!.click}`).fontSize(30)
   }
 }
 

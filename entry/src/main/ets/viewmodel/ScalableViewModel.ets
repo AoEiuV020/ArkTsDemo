@@ -1,10 +1,9 @@
 /**
- * 图片预览视图模型
- * 参考鸿蒙官方图片缩放方案实现
+ * 通用缩放视图模型
+ * 支持捏合缩放、拖动、双击缩放等手势
  */
 @ObservedV2
-export class ImagePreviewViewModel {
-  imageUrl: string = ''
+export class ScalableViewModel {
   @Trace scale: number = 1
   @Trace offsetX: number = 0
   @Trace offsetY: number = 0
@@ -17,8 +16,20 @@ export class ImagePreviewViewModel {
   private panStartX: number = 0
   private panStartY: number = 0
 
-  constructor(imageUrl: string) {
-    this.imageUrl = imageUrl
+  constructor(
+    minScale?: number,
+    maxScale?: number,
+    doubleClickScale?: number
+  ) {
+    if (minScale !== undefined) {
+      this.minScale = minScale
+    }
+    if (maxScale !== undefined) {
+      this.maxScale = maxScale
+    }
+    if (doubleClickScale !== undefined) {
+      this.doubleClickScale = doubleClickScale
+    }
   }
 
   /**
@@ -101,7 +112,7 @@ export class ImagePreviewViewModel {
    * 处理双击手势
    */
   handleDoubleTap(): void {
-    // 如果已放大，则重置；否则放大到2倍
+    // 如果已放大，则重置；否则放大到指定倍数
     if (this.scale > 1) {
       this.resetTransform()
     } else {

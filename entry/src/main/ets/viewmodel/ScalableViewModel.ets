@@ -67,7 +67,7 @@ export class ScalableViewModel {
     const centerX = halfX + this.initialOffsetX
     const centerY = halfY + this.initialOffsetY
 
-    // 计算偏移：从初始偏移 + 焦点移动距离
+    // 计算偏移：从初始偏移 + 焦点移动距离 + 缩放中心偏移，
     this.offsetX =
       this.initialOffsetX + (focalPointX - this.initialFocalPointX) + (centerX - focalPointX) * (scaleRatio - 1)
     this.offsetY =
@@ -84,6 +84,30 @@ export class ScalableViewModel {
     // 重要：重置 initialScale 为 1.0，而不是当前 scale
     // 这样下次手势的 scaleRatio 是相对于 1.0 的增量
     this.initialScale = 1.0
+    this.initialOffsetX = this.offsetX
+    this.initialOffsetY = this.offsetY
+  }
+
+  /**
+   * 拖动开始 - 记录初始偏移
+   */
+  onPanStart(x: number, y: number): void {
+    this.initialOffsetX = this.offsetX
+    this.initialOffsetY = this.offsetY
+  }
+
+  /**
+   * 拖动更新 - 直接更新偏移
+   */
+  onPanUpdate(offsetX: number, offsetY: number): void {
+    this.offsetX = this.initialOffsetX + offsetX
+    this.offsetY = this.initialOffsetY + offsetY
+  }
+
+  /**
+   * 拖动结束
+   */
+  onPanEnd(): void {
     this.initialOffsetX = this.offsetX
     this.initialOffsetY = this.offsetY
   }

@@ -68,19 +68,23 @@ export struct ScalableView {
             if (this.scaling) {
               return;
             }
-            // 拖动也使用相同的接口，scaleRatio 为 1
-            if (event.offsetX !== undefined && event.offsetY !== undefined) {
-              this.vm.onScaleStart(event.offsetX, event.offsetY)
-            }
+            // 使用专门的拖动接口
+            this.vm.onPanStart(0, 0)
           })
           .onActionUpdate((event: GestureEvent) => {
             if (this.scaling) {
               return;
             }
             if (event.offsetX !== undefined && event.offsetY !== undefined) {
-              // 拖动时 scale 为 1，只更新偏移
-              this.vm.onScaleUpdate(1, event.offsetX, event.offsetY)
+              // 使用拖动专用的更新方法
+              this.vm.onPanUpdate(event.offsetX, event.offsetY)
             }
+          })
+          .onActionEnd((event: GestureEvent) => {
+            if (this.scaling) {
+              return;
+            }
+            this.vm.onPanEnd()
           })
       )
     )

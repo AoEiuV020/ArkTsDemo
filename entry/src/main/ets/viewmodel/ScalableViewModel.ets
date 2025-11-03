@@ -1,7 +1,5 @@
 /**
  * 通用缩放视图模型
- * 简化版本：只记录状态，不做复杂计算
- * 参考 Flutter ScalableState 设计
  */
 @ObservedV2
 export class ScalableViewModel {

@@ -3,10 +3,12 @@
  * 支持缩放、拖动和双击缩放
  * 将内容作为子组件传入
  *
- * 多层结构设计（参考 Flutter）：
- * 1. 手势层 - 处理所有手势事件
- * 2. 偏移层 - Transform.translate 处理位移
- * 3. 缩放层 - Transform.scale 处理缩放
+ * 两层结构设计：
+ * 1. 手势层(外层Stack) - 处理所有手势事件
+ *    独立手势层的原因：当控件拖动离开屏幕时，仍能保持识别触摸事件的范围
+ *    手势层始终保持在视口内(width/height='100%')，确保手势不会失效
+ * 2. 变换层(内层Stack) - 同时处理缩放(scale)和位移(translate)
+ *    将缩放和偏移应用在同一层，简化变换逻辑
  */
 import { ScalableViewModel } from '../viewmodel/ScalableViewModel'
 
@@ -18,23 +20,18 @@ export struct ScalableView {
   scaling: boolean = false
 
   build() {
-    // 手势层 - 处理事件
+    // 手势层 - 处理事件，固定在视口内保证手势不失效
     Stack() {
-      // 偏移层 - 处理位移
+      // 变换层 - 同时应用缩放和位移变换
       Stack() {
-        // 缩放层 - 处理缩放
-        Stack() {
-          this.content()
-        }
-        .width('100%')
-        .height('100%')
-        .scale({
-          x: this.vm.scale,
-          y: this.vm.scale,
-        })
+        this.content()
       }
       .width('100%')
       .height('100%')
+      .scale({
+        x: this.vm.scale,
+        y: this.vm.scale,
+      })
       .translate({ x: this.vm.offsetX, y: this.vm.offsetY })
     }
     .width('100%')

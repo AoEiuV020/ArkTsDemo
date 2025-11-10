@@ -7,6 +7,7 @@ struct Index {
         .height('100%')
         .width('100%')
         .maxLines(1)
+        .wordBreak(WordBreak.BREAK_ALL)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
     }
     .height('80%')

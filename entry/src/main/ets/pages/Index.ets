@@ -68,7 +68,7 @@ async function changeSomething() {
 async function getInitialData(): Promise<Map<string, string>> {
   // 模拟异步获取初始数据
   await new Promise<number>(resolve => setTimeout(resolve, 100))
-  const data = new Map<string, string>()
-  data.set('greeting', 'Hello World')
-  return data
+  return new Map([
+    ['greeting', 'Hello World'],
+  ])
 }

@@ -1,55 +1,27 @@
+@ObservedV2
 class Model {
-  cache: Map<string, string> = new Map()
-  private listeners: Array<(key?: string) => void> = []
+  @Trace cache: Map<string, string> = new Map()
 
   constructor() {
     this.initData()
     // 注册外部回调
     onSomethingChanged = (key: string, value: string) => {
       this.cache.set(key, value)
-      this.notifyListeners(key)
     }
-  }
-
-  getValue(key: string): string {
-    return this.cache.get(key) ?? ''
-  }
-
-  onChanged(callback: (key?: string) => void) {
-    this.listeners.push(callback)
   }
 
   private async initData() {
     this.cache = await getInitialData()
-    this.notifyListeners()
   }
 
-  private notifyListeners(key?: string) {
-    this.listeners.forEach(callback => callback(key))
-  }
 }
 
 @ObservedV2
 class ViewModel {
-  @Trace cache: Map<string, string> = new Map()
-  private model: Model = new Model()
-
-  constructor() {
-    this.model.onChanged((key?: string) => {
-      if (!key) {
-        // 参数为空，更新整个Map
-        this.cache = this.model.cache
-      } else {
-        // 有参数，只更新这一个key
-        // TODO: 这里是否有任何办法只更新这一个值？由于model中的数据源已经改变了， 这里set无效，
-        // this.cache.set(key, this.model.getValue(key))
-        this.cache = this.model.cache
-      }
-    })
-  }
+  @Trace model: Model = new Model()
 
   getValue(key: string): string {
-    return this.cache.get(key) ?? ''
+    return this.model.cache.get(key) ?? ''
   }
 
   doSomething() {

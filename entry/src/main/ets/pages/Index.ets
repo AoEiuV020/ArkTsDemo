@@ -37,6 +37,7 @@ struct Index {
   build() {
     Column() {
       Text(this.viewModel.getValue('greeting'))
+      Text(this.viewModel.getValue('none') + Date.now())
 
       Button('Update Model')
         .onClick(() => {
@@ -68,7 +69,5 @@ async function changeSomething() {
 async function getInitialData(): Promise<Map<string, string>> {
   // 模拟异步获取初始数据
   await new Promise<number>(resolve => setTimeout(resolve, 100))
-  return new Map([
-    ['greeting', 'Hello World'],
-  ])
+  return new Map()
 }

@@ -21,7 +21,7 @@ export struct InfoToggleRow {
 
         Blank()
 
-        Toggle({ type: ToggleType.Switch, isOn: $$this.isOn })
+        Toggle({ type: ToggleType.Switch, isOn: this.isOn })
           .enabled(!this.isUpdating)
           .onChange((isOn: boolean) => {
             this.onChange?.(isOn)

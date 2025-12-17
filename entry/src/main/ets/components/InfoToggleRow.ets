@@ -11,6 +11,12 @@ export struct InfoToggleRow {
   @Require @Param isOn: boolean
   @Param isUpdating: boolean = false
   @Event onChange?: SwitchChangeHandler
+  @Local localIsOn: boolean = this.isOn
+
+  @Monitor('isOn')
+  inputChanged() {
+    this.localIsOn = this.isOn
+  }
 
   build() {
     Column() {
@@ -21,10 +27,15 @@ export struct InfoToggleRow {
 
         Blank()
 
-        Toggle({ type: ToggleType.Switch, isOn: this.isOn })
+        Toggle({ type: ToggleType.Switch, isOn: this.localIsOn })
           .enabled(!this.isUpdating)
           .onChange((isOn: boolean) => {
-            this.onChange?.(isOn)
+            if (this.isOn === isOn) {
+              // 外部修改isOn触发的onChange,
+            } else {
+              // 用户点击触发的onChange,
+              this.onChange?.(isOn)
+            }
           })
       }
       .width('100%')

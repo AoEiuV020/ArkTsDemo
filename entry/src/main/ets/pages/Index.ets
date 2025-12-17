@@ -52,6 +52,7 @@ struct Index {
   }
 
   async updateSwitch(key: string, isOn: boolean) {
+    // 有坑，如果失败太快，数据连续赋值两次变回来了， 不会触发ui刷新，ui也就不会回滚，
     await new Promise<number>(resolve => setTimeout(() => resolve(100), 100))
     this.count++
     if (this.count % 3 == 0) {

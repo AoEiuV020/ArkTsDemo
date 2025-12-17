@@ -11,13 +11,6 @@ export struct InfoToggleRow {
   @Require @Param isOn: boolean
   @Param isUpdating: boolean = false
   @Event onChange?: SwitchChangeHandler
-  @Local localIsOn: boolean = this.isOn
-
-  @Monitor('isOn')
-  inputChanged() {
-    this.localIsOn = this.isOn
-  }
-
   build() {
     Column() {
       Row() {
@@ -27,13 +20,14 @@ export struct InfoToggleRow {
 
         Blank()
 
-        Toggle({ type: ToggleType.Switch, isOn: this.localIsOn })
+        Toggle({ type: ToggleType.Switch, isOn: this.isOn })
           .enabled(!this.isUpdating)
           .onChange((isOn: boolean) => {
             if (this.isOn === isOn) {
               // 外部修改isOn触发的onChange,
             } else {
               // 用户点击触发的onChange,
+              // onChange中如果没修改传入的isOn会有大问题， 坑爹玩意明明是声明式但ui并不跟着传入的isOn走，而是点一下就一定会切换ui，
               this.onChange?.(isOn)
             }
           })

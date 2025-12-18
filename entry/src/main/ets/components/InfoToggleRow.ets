@@ -11,6 +11,7 @@ export struct InfoToggleRow {
   @Require @Param isOn: boolean
   @Param isUpdating: boolean = false
   @Event onChange?: SwitchChangeHandler
+
   build() {
     Column() {
       Row() {
@@ -20,17 +21,16 @@ export struct InfoToggleRow {
 
         Blank()
 
-        Toggle({ type: ToggleType.Switch, isOn: this.isOn })
-          .enabled(!this.isUpdating)
-          .onChange((isOn: boolean) => {
-            if (this.isOn === isOn) {
-              // 外部修改isOn触发的onChange,
-            } else {
-              // 用户点击触发的onChange,
-              // onChange中如果没修改传入的isOn会有大问题， 坑爹玩意明明是声明式但ui并不跟着传入的isOn走，而是点一下就一定会切换ui，
-              this.onChange?.(isOn)
-            }
-          })
+        // 完全拦截Toggle的触摸事件，不使用onChange，强制通过外部修改isOn状态，
+        // 因为Toggle的切换动画无法阻止，还会导致短时间内的切换失败回滚失效，
+        Column() {
+          Toggle({ type: ToggleType.Switch, isOn: this.isOn })
+        }
+        .enabled(!this.isUpdating)
+        .hitTestBehavior(HitTestMode.Block)
+        .onClick(() => {
+          this.onChange?.(!this.isOn)
+        })
       }
       .width('100%')
       .padding({

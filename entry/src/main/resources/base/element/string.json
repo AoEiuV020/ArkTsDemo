@@ -11,6 +11,14 @@
     {
       "name": "EntryAbility_label",
       "value": "ArkTsDemo"
+    },
+    {
+      "name": "location_permission_reason",
+      "value": "用于在地图上显示您的当前位置和选择地点"
+    },
+    {
+      "name": "internet_permission_reason",
+      "value": "用于加载地图数据"
     }
   ]
 }

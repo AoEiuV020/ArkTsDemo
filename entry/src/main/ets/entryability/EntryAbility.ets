@@ -1,8 +1,16 @@
 import { AbilityConstant, ConfigurationConstant, UIAbility, Want } from '@kit.AbilityKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { window } from '@kit.ArkUI';
+import { Initializer } from '@bdmap/base';
 
 const DOMAIN = 0x0000;
+
+/**
+ * 百度地图AK，请替换为您自己申请的密钥
+ * 申请地址: https://lbs.baidu.com/apiconsole/key
+ * 选择"鸿蒙应用"类型，填写包名
+ */
+const BAIDU_MAP_AK = '';
 
 export default class EntryAbility extends UIAbility {
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {
@@ -17,6 +25,9 @@ export default class EntryAbility extends UIAbility {
   onWindowStageCreate(windowStage: window.WindowStage): void {
     // Main window is created, set main page for this ability
     hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onWindowStageCreate');
+
+    // 初始化百度地图SDK
+    Initializer.getInstance().initialize(BAIDU_MAP_AK, this.context);
 
     windowStage.loadContent('pages/Index', (err) => {
       if (err.code) {

@@ -5,6 +5,10 @@
   "main": "",
   "author": "",
   "license": "",
-  "dependencies": {}
+  "dependencies": {
+    "@bdmap/base": "2.0.3",
+    "@bdmap/map": "2.0.3",
+    "@bdmap/search": "2.0.3"
+  }
 }
 

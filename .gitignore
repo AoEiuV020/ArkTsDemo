@@ -21,3 +21,6 @@ BuildProfile.ets
 
 # 用于运行前自动更新代码以便强制触发arkts编译，解决src目录下文件变动不触发编译的问题，
 /entry/src/main/ets/date.ets
+
+# 外部项目链接，供AI参考，
+/ln

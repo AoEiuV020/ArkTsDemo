@@ -3,9 +3,15 @@
     "node ./script/buildEts.js": true,
     "./script/build.sh": true,
     "pnpm build": true,
-    "pnpm test": true,
+    "pnpm test": true
+  },
+  "chat.tools.urls.autoApprove": {
+    "https://developer.huawei.com": {
+      "approveRequest": true,
+      "approveResponse": true
+    }
   },
   "cSpell.words": [
-    "ohos",
+    "ohos"
   ]
 }

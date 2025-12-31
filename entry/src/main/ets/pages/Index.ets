@@ -4,7 +4,7 @@ import { BrowserPage } from './BrowserPage'
 @ComponentV2
 struct Index {
   navPathStack: NavPathStack = new NavPathStack()
-  @Local url: string = 'https://aoeiuv020.github.io/livekit_meeting/'
+  @Local url: string = 'https://flutterdemo.aoeiuv020.com/'
 
   @Builder
   pageMap(name: string, param: ESObject) {

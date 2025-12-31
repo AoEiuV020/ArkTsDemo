@@ -6,10 +6,6 @@ export struct BrowserPage {
   controller: webview.WebviewController = new webview.WebviewController()
   navPathStack: NavPathStack = new NavPathStack()
 
-  aboutToAppear(): void {
-    webview.WebviewController.initializeWebEngine()
-  }
-
   build() {
     NavDestination() {
       RelativeContainer() {
@@ -20,6 +16,7 @@ export struct BrowserPage {
           .domStorageAccess(true)
           .fileAccess(true)
           .imageAccess(true)
+          .onlineImageAccess(true)
           .mediaPlayGestureAccess(true)
           .mixedMode(MixedMode.All)
           .zoomAccess(true)

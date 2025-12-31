@@ -21,6 +21,7 @@ export class HttpProxy {
       this.handleResponse(res, resourceHandler, options)
     }).catch((error: Error) => {
       console.error(`${TAG} GET 请求失败: ${error.message}`)
+      this.handleError(resourceHandler, error)
     })
   }
 
@@ -45,6 +46,29 @@ export class HttpProxy {
       console.info(`${TAG} 响应处理完成`)
     } catch (error) {
       console.error(`${TAG} 响应处理失败: ${(error as Error).message}`)
+    }
+  }
+
+  /** 处理请求错误 */
+  private handleError(resourceHandler: webview.WebResourceHandler, error: Error): void {
+    console.error(`${TAG} 处理错误响应: ${error.message}`)
+    const response = new webview.WebSchemeHandlerResponse()
+    response.setStatus(500)
+    response.setStatusText('Internal Server Error')
+    response.setMimeType('application/json')
+    response.setEncoding('utf-8')
+    response.setNetErrorCode(WebNetErrorList.NET_OK)
+    try {
+      resourceHandler.didReceiveResponse(response)
+      const errorBody = JSON.stringify({ error: error.message })
+      const errorBytes = new Uint8Array(errorBody.length)
+      for (let i = 0; i < errorBody.length; i++) {
+        errorBytes[i] = errorBody.charCodeAt(i)
+      }
+      resourceHandler.didReceiveResponseBody(errorBytes.buffer as ArrayBuffer)
+      resourceHandler.didFinish()
+    } catch (e) {
+      console.error(`${TAG} 错误响应处理失败: ${(e as Error).message}`)
     }
   }
 }

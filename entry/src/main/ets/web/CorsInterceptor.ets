@@ -28,6 +28,11 @@ export class CorsInterceptor {
         const requestUrl = request.getRequestUrl()
         const method = request.getRequestMethod()
         console.info(`${TAG} onRequestStart method=${method} url=${requestUrl}`)
+        // 只拦截 GET 请求
+        if (method !== 'GET') {
+          console.info(`${TAG} 不拦截，非 GET 请求`)
+          return false
+        }
         // 判断是否匹配需要代理的路径正则
         if (this.corsRegex.test(requestUrl)) {
           console.info(`${TAG} 拦截匹配路径请求 regex=${this.corsRegex}`)

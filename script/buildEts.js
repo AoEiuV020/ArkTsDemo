@@ -74,29 +74,92 @@ const rlErr = readline.createInterface({
   terminal: false,
 })
 
-let skipUntilEmpty = false
+// 日志级别：error=只显示错误, warn=显示警告和错误, all=显示全部
+const logLevel = process.argv[2] || 'error'
+
+// ANSI 颜色代码：红色=31/91, 黄色=33/93
+const RED_CODES = ['\x1B[31m', '\x1B[91m']
+const YELLOW_CODES = ['\x1B[33m', '\x1B[93m']
+
+// 检测行的颜色级别
+function getLineLevel(line) {
+  if (RED_CODES.some(c => line.includes(c))) return 'error'
+  if (YELLOW_CODES.some(c => line.includes(c))) return 'warn'
+  return 'info'
+}
+
+// 去除 ANSI 颜色代码
+function stripAnsi(str) {
+  return str.replace(/\x1B\[[0-9;]*m/g, '')
+}
+
+// 根据日志级别判断是否应该显示
+function shouldShow(level) {
+  if (logLevel === 'all') return true
+  if (logLevel === 'warn') return level === 'error' || level === 'warn'
+  return level === 'error'
+}
+
+// 追踪当前块的级别（用于处理无颜色的续行）
+let currentBlockLevel = 'info'
 
 function processLine(line) {
-  // 遇到WARN开始跳过
-  if (line.includes('WARN:')) {
-    skipUntilEmpty = true
+  const cleanLine = stripAnsi(line)
+  let level = getLineLevel(line)
+
+  // 过滤空行，但重置块级别
+  if (cleanLine.trim() === '') {
+    currentBlockLevel = 'info'
     return
   }
 
-  // 跳过模式下，空行结束跳过
-  if (skipUntilEmpty) {
-    if (line.trim() === '') {
-      skipUntilEmpty = false
+  // 有颜色的行更新块级别
+  if (level !== 'info') {
+    currentBlockLevel = level
+  } else {
+    // 无颜色行继承当前块级别
+    level = currentBlockLevel
+  }
+
+  // 过滤尖括号开头行
+  if (cleanLine.startsWith('>')) {
+    return
+  }
+
+  // 过滤 * Try: 行
+  if (cleanLine.includes('* Try:') || cleanLine.includes('Try:')) {
+    return
+  }
+
+  // 过滤 COMPILE RESULT 行
+  if (cleanLine.includes('COMPILE RESULT:')) {
+    return
+  }
+
+  // 过滤错误/警告序号开头行（如 1 ERROR: 或 2 WARN:）
+  if (/^\d+ (ERROR|WARN)/.test(cleanLine.trim())) {
+    return
+  }
+
+  // Error Message 行作为错误级别显示
+  if (cleanLine.startsWith('Error Message:')) {
+    if (shouldShow('error')) {
+      console.log(cleanLine)
     }
     return
   }
 
-  // 过滤掉以 > 开头的行和空行
-  if (line.startsWith('>') || line.trim() === '') {
+  // 过滤签名配置提示
+  if (cleanLine.includes('signingConfigs')) {
     return
   }
 
-  console.log(line)
+  // 根据颜色级别过滤
+  if (!shouldShow(level)) {
+    return
+  }
+
+  console.log(cleanLine)
 }
 
 rl.on('line', processLine)

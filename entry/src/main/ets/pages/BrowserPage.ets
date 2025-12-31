@@ -1,8 +1,23 @@
 import { webview } from '@kit.ArkWeb'
+import { CorsInterceptor } from '../web'
+
+/** 从 URL 中提取 origin */
+function extractOrigin(url: string): string {
+  const match = url.match(/^(https?:\/\/[^/]+)/)
+  return match ? match[1] : url
+}
+
+/** 浏览器页面参数 */
+export interface BrowserPageParams {
+  url: string
+  enableCors?: boolean
+}
 
 @ComponentV2
 export struct BrowserPage {
   @Require @Param url: string
+  /** 是否启用 CORS 代理 */
+  @Param enableCors: boolean = false
   controller: webview.WebviewController = new webview.WebviewController()
   navPathStack: NavPathStack = new NavPathStack()
 
@@ -21,6 +36,12 @@ export struct BrowserPage {
           .mixedMode(MixedMode.All)
           .zoomAccess(true)
           .geolocationAccess(true)
+          .onControllerAttached(() => {
+            if (this.enableCors) {
+              const origin = extractOrigin(this.url)
+              new CorsInterceptor(this.controller, origin).enable()
+            }
+          })
 
         Button('←')
           .id('backBtn')
@@ -63,3 +84,4 @@ export struct BrowserPage {
     })
   }
 }
+

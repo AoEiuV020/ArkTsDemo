@@ -1,15 +1,19 @@
-import { BrowserPage } from './BrowserPage'
+import { BrowserPage, BrowserPageParams } from './BrowserPage'
 
 @Entry
 @ComponentV2
 struct Index {
   navPathStack: NavPathStack = new NavPathStack()
-  @Local url: string = 'https://flutterdemo.aoeiuv020.com/'
+  @Local url: string = 'https://aoeiuv020.github.io/livekit_meeting/'
+  @Local enableCors: boolean = true
 
   @Builder
   pageMap(name: string, param: ESObject) {
     if (name === 'BrowserPage') {
-      BrowserPage({ url: param as string })
+      BrowserPage({
+        url: (param as BrowserPageParams).url,
+        enableCors: (param as BrowserPageParams).enableCors,
+      })
     }
   }
 
@@ -24,12 +28,26 @@ struct Index {
             this.url = value
           })
 
+        Row() {
+          Text('允许跨域')
+            .fontSize(16)
+          Toggle({ type: ToggleType.Switch, isOn: this.enableCors })
+            .margin({ left: 10 })
+            .onChange((isOn: boolean) => {
+              this.enableCors = isOn
+            })
+        }
+        .width('90%')
+        .margin({ top: 20 })
+        .justifyContent(FlexAlign.Start)
+
         Button('打开浏览器')
           .width('60%')
           .height(50)
           .margin({ top: 20 })
           .onClick(() => {
-            this.navPathStack.pushPath({ name: 'BrowserPage', param: this.url })
+            const params: BrowserPageParams = { url: this.url, enableCors: this.enableCors }
+            this.navPathStack.pushPath({ name: 'BrowserPage', param: params })
           })
       }
       .height('100%')

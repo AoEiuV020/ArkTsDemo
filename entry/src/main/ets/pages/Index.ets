@@ -43,10 +43,17 @@ struct Index {
         .margin({ top: 20 })
         .justifyContent(FlexAlign.Start)
 
-        TextInput({ text: this.corsPattern, placeholder: '跨域路径匹配（如 /api/）' })
+        Text('跨域路径正则（仅拦截GET请求）')
+          .fontSize(12)
+          .fontColor('#666666')
+          .width('90%')
+          .margin({ top: 10 })
+          .opacity(this.enableCors ? 1 : 0.5)
+
+        TextInput({ text: this.corsPattern, placeholder: '如 /api/' })
           .width('90%')
           .height(50)
-          .margin({ top: 10 })
+          .margin({ top: 5 })
           .enabled(this.enableCors)
           .opacity(this.enableCors ? 1 : 0.5)
           .onChange((value: string) => {

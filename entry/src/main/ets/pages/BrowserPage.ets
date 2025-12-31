@@ -80,10 +80,6 @@ export struct BrowserPage {
             console.info(`${TAG} onConsole [${event.message.getMessageLevel()}] ${event.message.getMessage()}`)
             return false
           })
-          .onLoadIntercept((event) => {
-            console.info(`${TAG} onLoadIntercept url=${event.data.getRequestUrl()}`)
-            return false
-          })
 
         Button('←')
           .id('backBtn')

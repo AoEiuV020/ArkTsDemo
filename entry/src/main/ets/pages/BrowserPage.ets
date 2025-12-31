@@ -1,6 +1,8 @@
 import { webview } from '@kit.ArkWeb'
 import { CorsInterceptor } from '../web'
 
+const TAG = '[BrowserPage]'
+
 /** 从 URL 中提取 origin */
 function extractOrigin(url: string): string {
   const match = url.match(/^(https?:\/\/[^/]+)/)
@@ -11,6 +13,8 @@ function extractOrigin(url: string): string {
 export interface BrowserPageParams {
   url: string
   enableCors?: boolean
+  /** 需要代理的路径匹配模式，如 /api/ */
+  corsPattern?: string
 }
 
 @ComponentV2
@@ -18,8 +22,20 @@ export struct BrowserPage {
   @Require @Param url: string
   /** 是否启用 CORS 代理 */
   @Param enableCors: boolean = false
+  /** 需要代理的路径匹配模式 */
+  @Param corsPattern: string = '/api/'
   controller: webview.WebviewController = new webview.WebviewController()
   navPathStack: NavPathStack = new NavPathStack()
+  private corsInterceptor?: CorsInterceptor
+
+  aboutToAppear(): void {
+    console.info(`${TAG} aboutToAppear url=${this.url} enableCors=${this.enableCors}`)
+  }
+
+  aboutToDisappear(): void {
+    console.info(`${TAG} aboutToDisappear`)
+    this.corsInterceptor?.disable()
+  }
 
   build() {
     NavDestination() {
@@ -37,10 +53,36 @@ export struct BrowserPage {
           .zoomAccess(true)
           .geolocationAccess(true)
           .onControllerAttached(() => {
+            console.info(`${TAG} onControllerAttached`)
             if (this.enableCors) {
               const origin = extractOrigin(this.url)
-              new CorsInterceptor(this.controller, origin).enable()
+              console.info(`${TAG} 启用 CORS 拦截，origin=${origin} pattern=${this.corsPattern}`)
+              this.corsInterceptor = new CorsInterceptor(this.controller, origin, this.corsPattern)
+              this.corsInterceptor.enable()
             }
+          })
+          .onPageBegin((event) => {
+            console.info(`${TAG} onPageBegin url=${event.url}`)
+          })
+          .onPageEnd((event) => {
+            console.info(`${TAG} onPageEnd url=${event.url}`)
+          })
+          .onProgressChange((event) => {
+            console.info(`${TAG} onProgressChange progress=${event.newProgress}`)
+          })
+          .onErrorReceive((event) => {
+            console.error(`${TAG} onErrorReceive code=${event.error.getErrorCode()} msg=${event.error.getErrorInfo()} url=${event.request.getRequestUrl()}`)
+          })
+          .onHttpErrorReceive((event) => {
+            console.error(`${TAG} onHttpErrorReceive code=${event.response.getResponseCode()} url=${event.request.getRequestUrl()}`)
+          })
+          .onConsole((event) => {
+            console.info(`${TAG} onConsole [${event.message.getMessageLevel()}] ${event.message.getMessage()}`)
+            return false
+          })
+          .onLoadIntercept((event) => {
+            console.info(`${TAG} onLoadIntercept url=${event.data.getRequestUrl()}`)
+            return false
           })
 
         Button('←')

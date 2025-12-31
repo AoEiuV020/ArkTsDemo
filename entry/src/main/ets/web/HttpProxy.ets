@@ -2,35 +2,32 @@ import { rcp } from '@kit.RemoteCommunicationKit'
 import { WebNetErrorList, webview } from '@kit.ArkWeb'
 import { CorsProxyOptions } from './CorsProxyOptions'
 
+const TAG = '[HttpProxy]'
+
 /** HTTP 代理类，用于绕过 CORS 限制 */
 export class HttpProxy {
   private session: rcp.Session
 
   constructor() {
+    console.info(`${TAG} 创建 HTTP 代理`)
     this.session = rcp.createSession()
   }
 
   /** 代理 GET 请求 */
   get(url: string, resourceHandler: webview.WebResourceHandler, options: CorsProxyOptions): void {
+    console.info(`${TAG} GET 请求开始 url=${url}`)
     this.session.get(url).then((res) => {
+      console.info(`${TAG} GET 请求成功 statusCode=${res.statusCode}`)
       this.handleResponse(res, resourceHandler, options)
     }).catch((error: Error) => {
-      console.error(`HttpProxy GET 失败: ${error.message}`)
-    })
-  }
-
-  /** 代理 POST 请求 */
-  post(url: string, resourceHandler: webview.WebResourceHandler, options: CorsProxyOptions): void {
-    this.session.post(url).then((res) => {
-      this.handleResponse(res, resourceHandler, options)
-    }).catch((error: Error) => {
-      console.error(`HttpProxy POST 失败: ${error.message}`)
+      console.error(`${TAG} GET 请求失败: ${error.message}`)
     })
   }
 
   /** 处理响应并添加 CORS 头 */
   private handleResponse(res: rcp.Response, resourceHandler: webview.WebResourceHandler,
     options: CorsProxyOptions): void {
+    console.info(`${TAG} 处理响应 mimeType=${options.mimeType} requestOrigin=${options.requestOrigin}`)
     const response = new webview.WebSchemeHandlerResponse()
     response.setStatus(200)
     response.setStatusText('OK')
@@ -39,10 +36,15 @@ export class HttpProxy {
     response.setNetErrorCode(WebNetErrorList.NET_OK)
     response.setHeaderByName('Access-Control-Allow-Origin', options.requestOrigin, true)
     response.setHeaderByName('Access-Control-Allow-Credentials', 'true', true)
-    response.setHeaderByName('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS', true)
+    response.setHeaderByName('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE', true)
     response.setHeaderByName('Access-Control-Allow-Headers', 'Content-Type, Authorization', true)
-    resourceHandler.didReceiveResponse(response)
-    resourceHandler.didReceiveResponseBody(res.body)
-    resourceHandler.didFinish()
+    try {
+      resourceHandler.didReceiveResponse(response)
+      resourceHandler.didReceiveResponseBody(res.body)
+      resourceHandler.didFinish()
+      console.info(`${TAG} 响应处理完成`)
+    } catch (error) {
+      console.error(`${TAG} 响应处理失败: ${(error as Error).message}`)
+    }
   }
 }

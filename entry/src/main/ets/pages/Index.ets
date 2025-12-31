@@ -6,6 +6,7 @@ struct Index {
   navPathStack: NavPathStack = new NavPathStack()
   @Local url: string = 'https://aoeiuv020.github.io/livekit_meeting/'
   @Local enableCors: boolean = true
+  @Local corsPattern: string = '/api/'
 
   @Builder
   pageMap(name: string, param: ESObject) {
@@ -13,6 +14,7 @@ struct Index {
       BrowserPage({
         url: (param as BrowserPageParams).url,
         enableCors: (param as BrowserPageParams).enableCors,
+        corsPattern: (param as BrowserPageParams).corsPattern,
       })
     }
   }
@@ -41,12 +43,26 @@ struct Index {
         .margin({ top: 20 })
         .justifyContent(FlexAlign.Start)
 
+        TextInput({ text: this.corsPattern, placeholder: '跨域路径匹配（如 /api/）' })
+          .width('90%')
+          .height(50)
+          .margin({ top: 10 })
+          .enabled(this.enableCors)
+          .opacity(this.enableCors ? 1 : 0.5)
+          .onChange((value: string) => {
+            this.corsPattern = value
+          })
+
         Button('打开浏览器')
           .width('60%')
           .height(50)
           .margin({ top: 20 })
           .onClick(() => {
-            const params: BrowserPageParams = { url: this.url, enableCors: this.enableCors }
+            const params: BrowserPageParams = {
+              url: this.url,
+              enableCors: this.enableCors,
+              corsPattern: this.corsPattern,
+            }
             this.navPathStack.pushPath({ name: 'BrowserPage', param: params })
           })
       }

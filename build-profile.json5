@@ -39,8 +39,8 @@
       ]
     },
     {
-      "name": "exampleblanklibrary",
-      "srcPath": "./packages/exampleblanklibrary",
+      "name": "json_rpc_2",
+      "srcPath": "../json-rpc-2.0"
     }
   ]
 }

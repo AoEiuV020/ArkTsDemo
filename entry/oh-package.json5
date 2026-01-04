@@ -5,6 +5,9 @@
   "main": "",
   "author": "",
   "license": "",
-  "dependencies": {}
+  "dependencies": {
+    "@aoeiuv020/json_rpc_2": "file:../../json-rpc-2.0"
+    // json-rpc-2.0/build/default/outputs/default/json_rpc_2.har
+  }
 }
 

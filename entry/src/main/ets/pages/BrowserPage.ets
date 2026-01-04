@@ -1,11 +1,7 @@
 import { webview } from '@kit.ArkWeb'
-import { buffer } from '@kit.ArkTS'
-import { CorsInterceptor } from '../web'
+import { CorsInterceptor, WebViewBridge, WebViewJsonRpc } from '../web'
 
 const TAG = '[BrowserPage]'
-
-/** 原生宿主注入到JS的对象名称 */
-const HOST_BRIDGE_NAME = 'WebViewHostBridge'
 
 /** 从 URL 中提取 origin */
 function extractOrigin(url: string): string {
@@ -21,20 +17,6 @@ export interface BrowserPageParams {
   corsPattern?: string
 }
 
-/** JS注入对象，用于接收Web消息 */
-class NativeBridgeObject {
-  controller: webview.WebviewController
-
-  constructor(controller: webview.WebviewController) {
-    this.controller = controller
-  }
-
-  /** Web调用此方法向原生发送消息 */
-  postMessage(message: string): void {
-    console.info(`${TAG} [NativeBridge] 收到Web消息: ${message}`)
-  }
-}
-
 @ComponentV2
 export struct BrowserPage {
   @Require @Param url: string
@@ -45,7 +27,8 @@ export struct BrowserPage {
   controller: webview.WebviewController = new webview.WebviewController()
   navPathStack: NavPathStack = new NavPathStack()
   private corsInterceptor?: CorsInterceptor
-  private nativeBridgeObject?: NativeBridgeObject
+  private webViewBridge?: WebViewBridge
+  private jsonRpc?: WebViewJsonRpc
 
   aboutToAppear(): void {
     console.info(`${TAG} aboutToAppear url=${this.url} enableCors=${this.enableCors}`)
@@ -54,11 +37,8 @@ export struct BrowserPage {
   aboutToDisappear(): void {
     console.info(`${TAG} aboutToDisappear`)
     this.corsInterceptor?.disable()
-    // 取消注册JS代理对象
-    if (this.nativeBridgeObject) {
-      this.controller.deleteJavaScriptRegister(HOST_BRIDGE_NAME)
-      console.info(`${TAG} 已取消注册 ${HOST_BRIDGE_NAME} 对象`)
-    }
+    this.jsonRpc?.destroy()
+    this.webViewBridge?.unregister()
   }
 
   build() {
@@ -78,10 +58,10 @@ export struct BrowserPage {
           .geolocationAccess(true)
           .onControllerAttached(() => {
             console.info(`${TAG} onControllerAttached`)
-            // 注入WebView宿主桥接对象
-            this.nativeBridgeObject = new NativeBridgeObject(this.controller)
-            this.controller.registerJavaScriptProxy(this.nativeBridgeObject, HOST_BRIDGE_NAME, ['postMessage'])
-            console.info(`${TAG} 已注入 ${HOST_BRIDGE_NAME} 对象`)
+            // 初始化WebView桥接和JSON-RPC
+            this.webViewBridge = new WebViewBridge(this.controller)
+            this.webViewBridge.register()
+            this.jsonRpc = new WebViewJsonRpc(this.webViewBridge)
             if (this.enableCors) {
               const origin = extractOrigin(this.url)
               console.info(`${TAG} 启用 CORS 拦截，origin=${origin} pattern=${this.corsPattern}`)
@@ -168,23 +148,8 @@ export struct BrowserPage {
 
   /** 发送挂断请求到Web */
   private sendHangUpRequest(): void {
-    const jsonRpcRequest = '{"jsonrpc":"2.0","method":"hangUp","id":1}'
-    console.info(`${TAG} 发送挂断请求: ${jsonRpcRequest}`)
-    this.sendMessageToWeb(jsonRpcRequest)
-  }
-
-  /** 发送消息到Web（使用base64编码避免特殊字符问题） */
-  private sendMessageToWeb(message: string): void {
-    // 使用base64编码保证安全传输
-    const base64Message = buffer.from(message).toString('base64')
-    // JS端使用atob()解码
-    this.controller.runJavaScript(`window.WebViewClientBridge && window.WebViewClientBridge.onHostMessageBase64('${base64Message}')`)
-      .then((result) => {
-        console.info(`${TAG} 挂断请求已发送, result=${result}`)
-      })
-      .catch((error: Error) => {
-        console.error(`${TAG} 发送挂断请求失败: ${error.message}`)
-      })
+    console.info(`${TAG} 发送挂断通知`)
+    this.jsonRpc?.sendNotification('hangUp')
   }
 }
 

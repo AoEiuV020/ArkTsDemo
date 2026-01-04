@@ -1,5 +1,6 @@
 import { webview } from '@kit.ArkWeb'
 import { CorsInterceptor, WebViewBridge, WebViewJsonRpc } from '../web'
+import { promptAction } from '@kit.ArkUI'
 
 const TAG = '[BrowserPage]'
 
@@ -15,6 +16,16 @@ export interface BrowserPageParams {
   enableCors?: boolean
   /** 需要代理的路径匹配模式，如 /api/ */
   corsPattern?: string
+}
+
+/** 设置拦截挂断参数 */
+interface SetInterceptHangUpParams {
+  enabled: boolean
+}
+
+/** 拦截挂断返回结果 */
+interface InterceptHangUpResult {
+  intercept: boolean
 }
 
 @ComponentV2
@@ -62,6 +73,8 @@ export struct BrowserPage {
             this.webViewBridge = new WebViewBridge(this.controller)
             this.webViewBridge.register()
             this.jsonRpc = new WebViewJsonRpc(this.webViewBridge)
+            // 注册拦截挂断方法
+            this.registerInterceptHangUp()
             if (this.enableCors) {
               const origin = extractOrigin(this.url)
               console.info(`${TAG} 启用 CORS 拦截，origin=${origin} pattern=${this.corsPattern}`)
@@ -136,6 +149,22 @@ export struct BrowserPage {
           .onClick(() => {
             this.sendHangUpRequest()
           })
+
+        Button('拦截')
+          .id('interceptBtn')
+          .width(60)
+          .height(40)
+          .fontSize(14)
+          .backgroundColor('#80FF8800')
+          .fontColor('#FFFFFF')
+          .alignRules({
+            bottom: { anchor: '__container__', align: VerticalAlign.Bottom },
+            left: { anchor: 'hangUpBtn', align: HorizontalAlign.End },
+          })
+          .margin({ bottom: 40, left: 10 })
+          .onClick(() => {
+            this.enableInterceptHangUp()
+          })
       }
       .width('100%')
       .height('100%')
@@ -150,6 +179,42 @@ export struct BrowserPage {
   private sendHangUpRequest(): void {
     console.info(`${TAG} 发送挂断通知`)
     this.jsonRpc?.sendNotification('hangUp')
+  }
+
+  /** 启用挂断拦截 */
+  private enableInterceptHangUp(): void {
+    console.info(`${TAG} 启用挂断拦截`)
+    const params: SetInterceptHangUpParams = { enabled: true }
+    this.jsonRpc?.sendNotification('setInterceptHangUpEnabled', params)
+  }
+
+  /** 注册拦截挂断方法 */
+  private registerInterceptHangUp(): void {
+    this.jsonRpc?.registerMethod<void, InterceptHangUpResult>('interceptHangUp', () => {
+      console.info(`${TAG} 收到挂断拦截请求`)
+      this.showHangUpConfirmDialog()
+      const result: InterceptHangUpResult = { intercept: true }
+      return result
+    })
+  }
+
+  /** 显示挂断确认对话框 */
+  private showHangUpConfirmDialog(): void {
+    promptAction.showDialog({
+      title: '确认挂断',
+      message: '确定要挂断通话吗？',
+      buttons: [
+        { text: '取消', color: '#999999' },
+        { text: '确定', color: '#FF0000' },
+      ],
+    }).then((result) => {
+      if (result.index === 1) {
+        console.info(`${TAG} 用户确认挂断`)
+        this.sendHangUpRequest()
+      } else {
+        console.info(`${TAG} 用户取消挂断`)
+      }
+    })
   }
 }
 

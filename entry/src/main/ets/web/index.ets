@@ -4,6 +4,8 @@ export { HttpProxy } from './HttpProxy'
 
 export type { CorsProxyOptions } from './CorsProxyOptions'
 
-export { WebViewBridge, WebViewJsonRpc } from './WebViewJsonRpc'
+export { WebViewBridge } from './WebViewBridge'
 
-export type { MessageCallback } from './WebViewJsonRpc'
+export type { MessageCallback } from './WebViewBridge'
+
+export { WebViewJsonRpc } from './WebViewJsonRpc'

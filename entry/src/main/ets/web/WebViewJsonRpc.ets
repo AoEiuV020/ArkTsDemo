@@ -1,4 +1,11 @@
-import { JSONRPCClient, JSONRPCServer, JSONRPCServerAndClient, SendRequest } from '@aoeiuv020/json_rpc_2'
+import {
+  JSONRPCClient,
+  JSONRPCParams,
+  JSONRPCServer,
+  JSONRPCServerAndClient,
+  SendRequest,
+  SimpleJSONRPCMethod,
+} from '@aoeiuv020/json_rpc_2'
 import { WebViewBridge } from './WebViewBridge'
 
 const TAG = '[WebViewJsonRpc]'
@@ -28,11 +35,11 @@ export class WebViewJsonRpc {
   }
 
   /** 注册RPC方法 */
-  registerMethod<TParams, TResult>(
+  registerMethod(
     name: string,
-    handler: (params?: TParams) => TResult | Promise<TResult>,
+    handler: SimpleJSONRPCMethod,
   ): void {
-    this.serverAndClient.addMethod(name, handler as (params: object) => object)
+    this.serverAndClient.addMethod(name, handler)
   }
 
   /** 取消注册RPC方法 */
@@ -41,12 +48,12 @@ export class WebViewJsonRpc {
   }
 
   /** 发送RPC请求 */
-  async sendRequest<T>(method: string, params?: object): Promise<T> {
+  async sendRequest<T>(method: string, params?: JSONRPCParams): Promise<T> {
     return this.serverAndClient.request(method, params) as Promise<T>
   }
 
   /** 发送RPC通知 */
-  sendNotification(method: string, params?: object): void {
+  sendNotification(method: string, params?: JSONRPCParams): void {
     this.serverAndClient.notify(method, params)
   }
 

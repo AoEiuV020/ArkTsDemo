@@ -18,16 +18,6 @@ export interface BrowserPageParams {
   corsPattern?: string
 }
 
-/** 设置拦截挂断参数 */
-interface SetInterceptHangUpParams {
-  enabled: boolean
-}
-
-/** 拦截挂断返回结果 */
-interface InterceptHangUpResult {
-  intercept: boolean
-}
-
 @ComponentV2
 export struct BrowserPage {
   @Require @Param url: string
@@ -184,17 +174,15 @@ export struct BrowserPage {
   /** 启用挂断拦截 */
   private enableInterceptHangUp(): void {
     console.info(`${TAG} 启用挂断拦截`)
-    const params: SetInterceptHangUpParams = { enabled: true }
-    this.jsonRpc?.sendNotification('setInterceptHangUpEnabled', params)
+    this.jsonRpc?.sendNotification('setInterceptHangUpEnabled', { enabled: true })
   }
 
   /** 注册拦截挂断方法 */
   private registerInterceptHangUp(): void {
-    this.jsonRpc?.registerMethod<void, InterceptHangUpResult>('interceptHangUp', () => {
+    this.jsonRpc?.registerMethod('interceptHangUp', () => {
       console.info(`${TAG} 收到挂断拦截请求`)
       this.showHangUpConfirmDialog()
-      const result: InterceptHangUpResult = { intercept: true }
-      return result
+      return { intercept: true }
     })
   }
 

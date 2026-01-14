@@ -41,12 +41,15 @@ export class AudioRecorder {
   private currentFilePath: string = ''
   private filesDir: string
   private listener: RecorderStateListener | undefined = undefined
+  /** 录音文件扩展名 */
+  private static readonly FILE_EXTENSION = '.amr'
+
   private readonly avProfile: media.AVRecorderProfile = {
-    audioBitrate: 112000,
-    audioChannels: 2,
-    audioCodec: media.CodecMimeType.AUDIO_MP3,
-    audioSampleRate: 48000,
-    fileFormat: media.ContainerFormatType.CFT_MP3,
+    audioBitrate: 23850,
+    audioChannels: 1,
+    audioCodec: media.CodecMimeType.AUDIO_AMR_WB,
+    audioSampleRate: 16000,
+    fileFormat: media.ContainerFormatType.CFT_AMR,
   }
 
   /**
@@ -93,7 +96,7 @@ export class AudioRecorder {
     this.setupRecorderCallbacks()
 
     const fileName = options?.fileName ?? `recording_${Date.now()}`
-    this.currentFilePath = `${this.filesDir}/${fileName}.mp3`
+    this.currentFilePath = `${this.filesDir}/${fileName}${AudioRecorder.FILE_EXTENSION}`
 
     this.audioFile = fileIo.openSync(this.currentFilePath, fileIo.OpenMode.READ_WRITE | fileIo.OpenMode.CREATE)
 

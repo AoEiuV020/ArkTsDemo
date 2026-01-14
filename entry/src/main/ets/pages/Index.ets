@@ -64,41 +64,69 @@ struct Index {
 
       Button('准备录音')
         .onClick(async () => {
-          await this.recorder?.prepare({ fileName: 'example' })
+          try {
+            await this.recorder?.prepare({ fileName: 'example' })
+          } catch (err) {
+            console.error(`准备录音失败: ${err}`)
+          }
         })
 
       Button('开始录音')
         .onClick(async () => {
-          await this.recorder?.start()
+          try {
+            await this.recorder?.start()
+          } catch (err) {
+            console.error(`开始录音失败: ${err}`)
+          }
         })
 
       Button('暂停')
         .onClick(async () => {
-          await this.recorder?.pause()
+          try {
+            await this.recorder?.pause()
+          } catch (err) {
+            console.error(`暂停录音失败: ${err}`)
+          }
         })
 
       Button('继续')
         .onClick(async () => {
-          await this.recorder?.resume()
+          try {
+            await this.recorder?.resume()
+          } catch (err) {
+            console.error(`恢复录音失败: ${err}`)
+          }
         })
 
       Button('停止并保存')
         .onClick(async () => {
-          const filePath = await this.recorder?.stop()
-          if (filePath) {
-            this.lastRecordedFile = filePath
+          try {
+            const filePath = await this.recorder?.stop()
+            if (filePath) {
+              this.lastRecordedFile = filePath
+            }
+          } catch (err) {
+            console.error(`停止录音失败: ${err}`)
           }
         })
 
       Button('取消录音')
         .onClick(async () => {
-          await this.recorder?.cancel()
+          try {
+            await this.recorder?.cancel()
+          } catch (err) {
+            console.error(`取消录音失败: ${err}`)
+          }
         })
 
       Button('播放音频')
         .onClick(async () => {
-          if (this.lastRecordedFile) {
-            await this.player.play(this.lastRecordedFile)
+          try {
+            if (this.lastRecordedFile) {
+              await this.player.play(this.lastRecordedFile)
+            }
+          } catch (err) {
+            console.error(`播放音频失败: ${err}`)
           }
         })
     }

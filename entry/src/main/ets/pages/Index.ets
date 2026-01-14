@@ -1,136 +1,192 @@
-import { abilityAccessCtrl, common, Permissions } from '@kit.AbilityKit'
-import { AudioPlayer, AudioRecorder, PlayerState, RecorderState } from '../audio'
+import { audio } from '@kit.AudioKit'
+import { BusinessError } from '@kit.BasicServicesKit'
+import { fileIo as fs } from '@kit.CoreFileKit'
+import { common } from '@kit.AbilityKit'
+
+const TAG = 'AudioCapturerDemo'
+
+class Options {
+  offset?: number
+  length?: number
+}
+
+let audioCapturer: audio.AudioCapturer | undefined = undefined
+let audioStreamInfo: audio.AudioStreamInfo = {
+  samplingRate: audio.AudioSamplingRate.SAMPLE_RATE_48000, // 采样率。
+  channels: audio.AudioChannel.CHANNEL_2, // 通道。
+  sampleFormat: audio.AudioSampleFormat.SAMPLE_FORMAT_S16LE, // 采样格式。
+  encodingType: audio.AudioEncodingType.ENCODING_TYPE_RAW, // 编码格式。
+}
+let audioCapturerInfo: audio.AudioCapturerInfo = {
+  source: audio.SourceType.SOURCE_TYPE_MIC, // 音源类型：Mic音频源。根据业务场景配置，参考SourceType。
+  capturerFlags: 0, // 音频采集器标志。
+}
+let audioCapturerOptions: audio.AudioCapturerOptions = {
+  streamInfo: audioStreamInfo,
+  capturerInfo: audioCapturerInfo,
+}
+let file: fs.File
+let readDataCallback: Callback<ArrayBuffer>
+
+async function initArguments(context: common.UIAbilityContext) {
+  let bufferSize: number = 0
+  let path = context.cacheDir
+  let filePath = path + '/StarWars10s-2C-48000-4SW.pcm'
+  file = fs.openSync(filePath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE)
+  readDataCallback = (buffer: ArrayBuffer) => {
+    let options: Options = {
+      offset: bufferSize,
+      length: buffer.byteLength,
+    }
+    fs.writeSync(file.fd, buffer, options)
+    bufferSize += buffer.byteLength
+  }
+}
+
+// 初始化，创建实例，设置监听事件。
+async function init() {
+  audio.createAudioCapturer(audioCapturerOptions, (err, capturer) => { // 创建AudioCapturer实例。
+    if (err) {
+      console.error(`Invoke createAudioCapturer failed, code is ${err.code}, message is ${err.message}`)
+      return
+    }
+    console.info(`${TAG}: create AudioCapturer success`)
+    audioCapturer = capturer
+    if (audioCapturer !== undefined) {
+      audioCapturer.on('readData', readDataCallback)
+    }
+  })
+}
+
+// 开始一次音频采集。
+async function start() {
+  if (audioCapturer !== undefined) {
+    let stateGroup = [audio.AudioState.STATE_PREPARED, audio.AudioState.STATE_PAUSED, audio.AudioState.STATE_STOPPED]
+    if (stateGroup.indexOf(audioCapturer.state.valueOf()) ===
+      -1) { // 当且仅当状态为STATE_PREPARED、STATE_PAUSED和STATE_STOPPED之一时才能启动采集。
+      console.error(`${TAG}: start failed`)
+      return
+    }
+
+    // 启动采集。
+    audioCapturer.start((err: BusinessError) => {
+      if (err) {
+        console.error('Capturer start failed.')
+      } else {
+        console.info('Capturer start success.')
+      }
+    })
+  }
+}
+
+// 停止采集。
+async function stop() {
+  if (audioCapturer !== undefined) {
+    // 只有采集器状态为STATE_RUNNING或STATE_PAUSED的时候才可以停止。
+    if (audioCapturer.state.valueOf() !== audio.AudioState.STATE_RUNNING &&
+      audioCapturer.state.valueOf() !== audio.AudioState.STATE_PAUSED) {
+      console.info('Capturer is not running or paused')
+      return
+    }
+
+    // 停止采集。
+    audioCapturer.stop((err: BusinessError) => {
+      if (err) {
+        console.error('Capturer stop failed.')
+      } else {
+        console.info('Capturer stop success.')
+      }
+    })
+  }
+}
+
+// 销毁实例，释放资源。
+async function release() {
+  if (audioCapturer !== undefined) {
+    // 采集器状态不是STATE_RELEASED或STATE_NEW状态，才能release。
+    if (audioCapturer.state.valueOf() === audio.AudioState.STATE_RELEASED ||
+      audioCapturer.state.valueOf() === audio.AudioState.STATE_NEW) {
+      console.info('Capturer already released')
+      return
+    }
+
+    // 释放资源。
+    audioCapturer.release((err: BusinessError) => {
+      if (err) {
+        console.error('Capturer release failed.')
+      } else {
+        fs.closeSync(file)
+        console.info('Capturer release success.')
+      }
+    })
+  }
+}
 
 @Entry
 @Component
 struct Index {
-  private atManager = abilityAccessCtrl.createAtManager()
-  private permissions: Array<Permissions> = ['ohos.permission.MICROPHONE']
-  private recorder: AudioRecorder | undefined = undefined
-  private player: AudioPlayer = new AudioPlayer()
-  @State private recorderState: RecorderState = RecorderState.Idle
-  @State private playerState: PlayerState = PlayerState.Idle
-  @State private lastRecordedFile: string = ''
-
-  async requestPermissions(): Promise<boolean> {
-    const context = getContext() as common.UIAbilityContext
-    try {
-      await this.atManager.requestPermissionsFromUser(context, this.permissions)
-      console.info('麦克风权限请求成功')
-      return true
-    } catch (err) {
-      console.error(`麦克风权限请求失败: ${err}`)
-      return false
-    }
-  }
-
-  aboutToAppear() {
-    this.requestPermissions()
-    const filesDir = (getContext() as common.UIAbilityContext).filesDir
-    this.recorder = new AudioRecorder(filesDir)
-    this.recorder.setListener({
-      onStateChange: (state) => {
-        this.recorderState = state
-      },
-      onError: (message) => {
-        console.error(message)
-      },
-    })
-    this.player.setListener({
-      onStateChange: (state) => {
-        this.playerState = state
-      },
-      onError: (message) => {
-        console.error(message)
-      },
-    })
-  }
-
   build() {
-    Column() {
-      Text(`录音状态: ${RecorderState[this.recorderState]}`)
-        .fontSize(16)
-        .margin(10)
+    Scroll() {
+      Column() {
+        Row() {
+          Column() {
+            Text('初始化').fontColor(Color.Black).fontSize(16).margin({ top: 12 })
+          }
+          .backgroundColor(Color.White)
+          .borderRadius(30)
+          .width('45%')
+          .height('25%')
+          .margin({ right: 12, bottom: 12 })
+          .onClick(async () => {
+            let context = this.getUIContext().getHostContext() as common.UIAbilityContext
+            initArguments(context)
+            init()
+          })
 
-      Text(`播放状态: ${PlayerState[this.playerState]}`)
-        .fontSize(16)
-        .margin(10)
+          Column() {
+            Text('开始录制').fontColor(Color.Black).fontSize(16).margin({ top: 12 })
+          }
+          .backgroundColor(Color.White)
+          .borderRadius(30)
+          .width('45%')
+          .height('25%')
+          .margin({ bottom: 12 })
+          .onClick(async () => {
+            start()
+          })
+        }
 
-      if (this.lastRecordedFile) {
-        Text(`最后录音: ${this.lastRecordedFile}`)
-          .fontSize(12)
-          .margin(10)
+        Row() {
+          Column() {
+            Text('停止录制').fontSize(16).margin({ top: 12 })
+          }
+          .id('audio_effect_manager_card')
+          .backgroundColor(Color.White)
+          .borderRadius(30)
+          .width('45%')
+          .height('25%')
+          .margin({ right: 12, bottom: 12 })
+          .onClick(async () => {
+            stop()
+          })
+
+          Column() {
+            Text('释放资源').fontColor(Color.Black).fontSize(16).margin({ top: 12 })
+          }
+          .backgroundColor(Color.White)
+          .borderRadius(30)
+          .width('45%')
+          .height('25%')
+          .margin({ bottom: 12 })
+          .onClick(async () => {
+            release()
+          })
+        }
+        .padding(12)
       }
-
-      Button('准备录音')
-        .onClick(async () => {
-          try {
-            await this.recorder?.prepare({ fileName: 'example' })
-          } catch (err) {
-            console.error(`准备录音失败: ${err}`)
-          }
-        })
-
-      Button('开始录音')
-        .onClick(async () => {
-          try {
-            await this.recorder?.start()
-          } catch (err) {
-            console.error(`开始录音失败: ${err}`)
-          }
-        })
-
-      Button('暂停')
-        .onClick(async () => {
-          try {
-            await this.recorder?.pause()
-          } catch (err) {
-            console.error(`暂停录音失败: ${err}`)
-          }
-        })
-
-      Button('继续')
-        .onClick(async () => {
-          try {
-            await this.recorder?.resume()
-          } catch (err) {
-            console.error(`恢复录音失败: ${err}`)
-          }
-        })
-
-      Button('停止并保存')
-        .onClick(async () => {
-          try {
-            const filePath = await this.recorder?.stop()
-            if (filePath) {
-              this.lastRecordedFile = filePath
-            }
-          } catch (err) {
-            console.error(`停止录音失败: ${err}`)
-          }
-        })
-
-      Button('取消录音')
-        .onClick(async () => {
-          try {
-            await this.recorder?.cancel()
-          } catch (err) {
-            console.error(`取消录音失败: ${err}`)
-          }
-        })
-
-      Button('播放音频')
-        .onClick(async () => {
-          try {
-            if (this.lastRecordedFile) {
-              await this.player.play(this.lastRecordedFile)
-            }
-          } catch (err) {
-            console.error(`播放音频失败: ${err}`)
-          }
-        })
+      .height('100%')
+      .width('100%')
+      .backgroundColor('#F1F3F5');
     }
-    .height('100%')
-    .width('100%')
   }
 }

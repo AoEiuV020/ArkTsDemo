@@ -49,8 +49,8 @@ export class AudioCapturer {
   private currentFilePath: string = ''
   private listener: CapturerStateListener | undefined = undefined
   private readonly streamInfo: audio.AudioStreamInfo = {
-    samplingRate: audio.AudioSamplingRate.SAMPLE_RATE_48000,
-    channels: audio.AudioChannel.CHANNEL_2,
+    samplingRate: 16000,
+    channels: 1,
     sampleFormat: audio.AudioSampleFormat.SAMPLE_FORMAT_S16LE,
     encodingType: audio.AudioEncodingType.ENCODING_TYPE_RAW,
   }

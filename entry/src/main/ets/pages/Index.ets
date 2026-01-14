@@ -45,7 +45,7 @@ struct Index {
           .margin({ right: 12, bottom: 12 })
           .onClick(async () => {
             try {
-              await this.capturer?.init({ fileName: 'capture_example' })
+              await this.capturer?.init()
             } catch (err) {
               console.error(`初始化采集器失败: ${err}`)
             }

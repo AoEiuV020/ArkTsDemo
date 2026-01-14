@@ -4,13 +4,6 @@ applyTo: '**'
 
 ## TypeScript 通用规范
 
-### 类型安全 (TS/ETS 共用)
-
-- **ets中禁止类型声明使用对象字面量**：
-  - 函数参数、返回值、变量类型等任何类型声明都必须先定义成interface或type别名
-  - ✅ 正确：`interface MessageListOptions { endTime?: number; endSeq?: number }` 然后使用 `options: MessageListOptions`
-  - ❌ 错误：`options: { endTime?: number; endSeq?: number }`
-
 ### 代码风格约束
 
 - **import语句必须统一写在文件开头**：所有import语句必须在文件最开始位置，禁止在代码中间、函数内部、方法内部等任何位置穿插import语句
@@ -19,12 +12,14 @@ applyTo: '**'
 - 静态成员使用类名访问，禁用this
 - 设置默认值用??，禁止使用||
 - 可空字段使用问号标记，禁止使用| undefined
+- **函数返回类型为void时直接省略不写**：如`function doSomething() {}`而不是`function doSomething(): void {}`
 - **禁止单行转发函数**：不要写只有一行代码的转发函数，如`async send(msg) { await this.model.send(msg) }`，调用处应该直接调用目标函数`this.model.send(msg)`
 - **统一使用chatId表示群组jid**：群组相关参数统一命名为chatId，禁止使用roomJid
 - **禁止硬编码意义不明的数字**：所有有特定含义的数字常量必须使用枚举替代，禁止直接使用数字。例如：
   - ✅ 正确：`GroupMemberRole.Admin`、`GroupMemberRole.Member`
   - ❌ 错误：`type = 2`、`role === 1`
   - 必须找到或创建对应的枚举，不能靠注释说明数字含义
+- **禁止向后兼容代码**：修改API、重命名类/方法时，直接修改，不保留旧的deprecated别名或兼容层
 
 ### 异常处理约束
 

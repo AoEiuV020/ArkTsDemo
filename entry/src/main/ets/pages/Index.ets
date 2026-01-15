@@ -45,9 +45,9 @@ struct Index {
           .width('45%')
           .height('25%')
           .margin({ right: 12, bottom: 12 })
-          .onClick(() => {
+          .onClick(async () => {
             const cacheDir = (getContext() as common.UIAbilityContext).cacheDir
-            this.vm.initRecorder(cacheDir)
+            await this.vm.initRecorder(cacheDir)
           })
 
           Column() {
@@ -84,8 +84,8 @@ struct Index {
           .width('45%')
           .height('25%')
           .margin({ bottom: 12 })
-          .onClick(() => {
-            this.vm.releaseRecorder()
+          .onClick(async () => {
+            await this.vm.releaseRecorder()
           })
         }
 

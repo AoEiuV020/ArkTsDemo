@@ -103,7 +103,7 @@ export class AudioCapturer {
     this.currentFilePath = `${this.cacheDir}/${fileName}${AudioCapturer.FILE_EXTENSION}`
     this.bufferSize = 0
 
-    this.file = fs.openSync(this.currentFilePath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE)
+    this.file = await fs.open(this.currentFilePath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE)
 
     const capturerOptions: audio.AudioCapturerOptions = {
       streamInfo: this.streamInfo,
@@ -157,7 +157,7 @@ export class AudioCapturer {
     }
 
     if (this.file !== undefined) {
-      fs.closeSync(this.file)
+      await fs.close(this.file)
       this.file = undefined
     }
 
@@ -170,7 +170,7 @@ export class AudioCapturer {
 
   private handleReadData(buffer: ArrayBuffer) {
     if (this.file !== undefined) {
-      fs.writeSync(this.file.fd, buffer, {
+      fs.write(this.file.fd, buffer, {
         offset: this.bufferSize,
         length: buffer.byteLength,
       })

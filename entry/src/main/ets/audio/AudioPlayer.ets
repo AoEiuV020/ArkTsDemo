@@ -118,7 +118,7 @@ export class AudioPlayer {
       this.avPlayer = undefined
     }
     if (this.audioFile) {
-      fileIo.closeSync(this.audioFile)
+      await fileIo.close(this.audioFile)
       this.audioFile = undefined
     }
     this.updateState(PlayerState.Idle)

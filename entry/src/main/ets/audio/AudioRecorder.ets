@@ -98,7 +98,7 @@ export class AudioRecorder {
     const fileName = options?.fileName ?? `recording_${Date.now()}`
     this.currentFilePath = `${this.filesDir}/${fileName}${AudioRecorder.FILE_EXTENSION}`
 
-    this.audioFile = fileIo.openSync(this.currentFilePath, fileIo.OpenMode.READ_WRITE | fileIo.OpenMode.CREATE)
+    this.audioFile = await fileIo.open(this.currentFilePath, fileIo.OpenMode.READ_WRITE | fileIo.OpenMode.CREATE)
 
     const avConfig: media.AVRecorderConfig = {
       audioSourceType: media.AudioSourceType.AUDIO_SOURCE_TYPE_MIC,

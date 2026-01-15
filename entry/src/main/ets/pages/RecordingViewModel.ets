@@ -50,11 +50,11 @@ export class RecordingViewModel {
   /**
    * 打印/proc/self/fd目录下的已打开文件描述符列表
    */
-  printOpenFdList() {
+  async printOpenFdList() {
     log('--- 已打开的fd列表 ---')
     try {
       const fdDir = '/proc/self/fd'
-      const entries = fileIo.listFileSync(fdDir)
+      const entries = await fileIo.listFile(fdDir)
       for (const entry of entries) {
         log(`  fd ${entry}`)
       }
@@ -85,9 +85,9 @@ export class RecordingViewModel {
   /**
    * 初始化录音器
    */
-  initRecorder(cacheDir: string) {
+  async initRecorder(cacheDir: string) {
     log('初始化录音器开始')
-    this.printOpenFdList()
+    await this.printOpenFdList()
     try {
       this.recorder.init({ outputFilePath: `${cacheDir}/capture_${Date.now()}.amr` })
       log('初始化录音器结束')
@@ -128,14 +128,14 @@ export class RecordingViewModel {
   /**
    * 释放录音器资源
    */
-  releaseRecorder() {
+  async releaseRecorder() {
     log('释放录音器资源开始')
     try {
       this.lastPcmFile = this.recorder.pcmFilePath
       this.lastEncodedFile = this.recorder.outputPath
       this.recorder.release()
       log('释放录音器资源结束')
-      this.printOpenFdList()
+      await this.printOpenFdList()
     } catch (error) {
       const e = error as Error
       log(`释放录音器资源失败: ${e.message}`)

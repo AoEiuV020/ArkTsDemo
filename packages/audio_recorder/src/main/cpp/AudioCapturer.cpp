@@ -9,8 +9,10 @@
  * - .amr: 产出PCM + AMR文件，使用AMR-WB参数采集
  */
 #include "AudioCapturer.h"
-#include "AudioEncoder.h"
+#include "AudioEncoderFactory.h"
+#include "IAudioEncoder.h"
 #include <cstring>
+#include <memory>
 #include <sys/stat.h>
 #include "ohaudio/native_audiocapturer.h"
 #include "ohaudio/native_audiostreambuilder.h"
@@ -23,7 +25,8 @@ std::string g_pcmFilePath;
 FILE *g_file = nullptr;
 OH_AudioCapturer *g_audioCapturer = nullptr;
 OH_AudioStreamBuilder *g_builder = nullptr;
-AudioEncoderConfig g_config; // 当前使用的配置
+AudioEncoderConfig g_config;              // 当前使用的配置
+std::unique_ptr<IAudioEncoder> g_encoder; // 编码器实例
 
 /**
  * 音频数据回调 - 将采集到的音频数据写入文件，并推送给编码器
@@ -34,7 +37,9 @@ int32_t OnReadData(OH_AudioCapturer *capturer, void *userData, void *buffer, int
         fwrite(buffer, bufferLen, 1, g_file);
     }
     // 边录边编码
-    AudioEncoderPushData(buffer, bufferLen);
+    if (g_encoder) {
+        g_encoder->pushData(buffer, bufferLen);
+    }
     return 0;
 }
 
@@ -49,6 +54,16 @@ void ReleaseCapturer() {
     if (g_builder) {
         OH_AudioStreamBuilder_Destroy(g_builder);
         g_builder = nullptr;
+    }
+}
+
+/**
+ * 释放编码器资源
+ */
+void ReleaseEncoder() {
+    if (g_encoder) {
+        g_encoder->release();
+        g_encoder.reset();
     }
 }
 
@@ -155,7 +170,7 @@ bool AudioCapturerInit(const std::string &outputFilePath) {
     // 释放旧资源
     ReleaseCapturer();
     CloseFile();
-    AudioEncoderRelease();
+    ReleaseEncoder();
 
     // 保存文件路径
     g_outputFilePath = outputFilePath;
@@ -171,18 +186,22 @@ bool AudioCapturerInit(const std::string &outputFilePath) {
         return false;
     }
 
-    // 初始化编码器（非PCM模式才需要编码）
+    // 创建编码器（非PCM模式才需要编码）
     if (codecType != AudioCodecType::PCM) {
-        if (!AudioEncoderInit(outputFilePath.c_str(), g_config)) {
-            CloseFile();
-            return false;
+        g_encoder = CreateEncoder(codecType);
+        if (g_encoder) {
+            if (!g_encoder->init(outputFilePath.c_str(), g_config.sampleRate, g_config.channelCount)) {
+                CloseFile();
+                ReleaseEncoder();
+                return false;
+            }
         }
     }
 
     // 创建采集器
     if (!CreateCapturerBuilder()) {
         CloseFile();
-        AudioEncoderRelease();
+        ReleaseEncoder();
         return false;
     }
 
@@ -191,7 +210,7 @@ bool AudioCapturerInit(const std::string &outputFilePath) {
     if (!GenerateCapturer()) {
         ReleaseCapturer();
         CloseFile();
-        AudioEncoderRelease();
+        ReleaseEncoder();
         return false;
     }
 
@@ -200,7 +219,9 @@ bool AudioCapturerInit(const std::string &outputFilePath) {
 
 void AudioCapturerStart() {
     if (g_audioCapturer) {
-        AudioEncoderStart();
+        if (g_encoder) {
+            g_encoder->start();
+        }
         OH_AudioCapturer_Start(g_audioCapturer);
     }
 }
@@ -208,14 +229,16 @@ void AudioCapturerStart() {
 void AudioCapturerStop() {
     if (g_audioCapturer) {
         OH_AudioCapturer_Stop(g_audioCapturer);
-        AudioEncoderStop();
+        if (g_encoder) {
+            g_encoder->stop();
+        }
     }
 }
 
 void AudioCapturerRelease() {
     ReleaseCapturer();
     CloseFile();
-    AudioEncoderRelease();
+    ReleaseEncoder();
 }
 
 int AudioCapturerGetState() {

@@ -1,70 +1,44 @@
-import { abilityAccessCtrl, common, Permissions } from '@kit.AbilityKit'
-import { AudioRecorder, RecorderState } from 'audio_recorder'
-import { AudioPlayer, PlayerState } from '../audio/AudioPlayer'
+import { common } from '@kit.AbilityKit'
+import { RecorderState } from 'audio_recorder'
+import { PlayerState } from '../audio/AudioPlayer'
+import { RecordingViewModel } from './RecordingViewModel'
 
 @Entry
 @Component
 struct Index {
-  private recorder: AudioRecorder = new AudioRecorder()
-  private player: AudioPlayer = new AudioPlayer()
-  @State private recorderState: RecorderState = RecorderState.Idle
-  @State private playerState: PlayerState = PlayerState.Idle
-  @State private lastPcmFile: string = ''
-  @State private lastEncodedFile: string = ''
+  private vm: RecordingViewModel = new RecordingViewModel()
 
   aboutToAppear() {
-    this.recorder.setListener({
-      onStateChange: (state) => {
-        this.recorderState = state
-      },
-      onError: (message) => {
-        console.error(message)
-      },
-    })
-    this.player.setListener({
-      onStateChange: (state) => {
-        this.playerState = state
-      },
-      onError: (message) => {
-        console.error(message)
-      },
-    })
-    this.requestPermissions()
-  }
-
-  private async requestPermissions() {
-    const permissions: Permissions[] = ['ohos.permission.MICROPHONE']
-    const atManager = abilityAccessCtrl.createAtManager()
     const context = getContext() as common.UIAbilityContext
-    await atManager.requestPermissionsFromUser(context, permissions)
+    this.vm.requestPermissions(context)
   }
 
   build() {
     Scroll() {
       Column() {
-        Text(`录音状态: ${RecorderState[this.recorderState]}`)
+        Text(`录音状态: ${RecorderState[this.vm.recorderState]}`)
           .fontSize(16)
           .margin(10)
 
-        Text(`播放状态: ${PlayerState[this.playerState]}`)
+        Text(`播放状态: ${PlayerState[this.vm.playerState]}`)
           .fontSize(16)
           .margin(10)
 
-        if (this.lastPcmFile) {
-          Text(`PCM文件: ${this.lastPcmFile}`)
+        if (this.vm.lastPcmFile) {
+          Text(`PCM文件: ${this.vm.lastPcmFile}`)
             .fontSize(12)
             .margin(10)
         }
 
-        if (this.lastEncodedFile) {
-          Text(`编码文件: ${this.lastEncodedFile}`)
+        if (this.vm.lastEncodedFile) {
+          Text(`编码文件: ${this.vm.lastEncodedFile}`)
             .fontSize(12)
             .margin(10)
         }
 
         Row() {
           Column() {
-            Text('初始化(MP3)').fontColor(Color.Black).fontSize(16).margin({ top: 12 })
+            Text('初始化(AMR)').fontColor(Color.Black).fontSize(16).margin({ top: 12 })
           }
           .backgroundColor(Color.White)
           .borderRadius(30)
@@ -73,7 +47,7 @@ struct Index {
           .margin({ right: 12, bottom: 12 })
           .onClick(() => {
             const cacheDir = (getContext() as common.UIAbilityContext).cacheDir
-            this.recorder.init({ outputFilePath: `${cacheDir}/capture_${Date.now()}.amr` })
+            this.vm.initRecorder(cacheDir)
           })
 
           Column() {
@@ -85,7 +59,7 @@ struct Index {
           .height('25%')
           .margin({ bottom: 12 })
           .onClick(() => {
-            this.recorder.start()
+            this.vm.startRecording()
           })
         }
 
@@ -99,7 +73,7 @@ struct Index {
           .height('25%')
           .margin({ right: 12, bottom: 12 })
           .onClick(() => {
-            this.recorder.stop()
+            this.vm.stopRecording()
           })
 
           Column() {
@@ -111,9 +85,7 @@ struct Index {
           .height('25%')
           .margin({ bottom: 12 })
           .onClick(() => {
-            this.lastPcmFile = this.recorder.pcmFilePath
-            this.lastEncodedFile = this.recorder.outputPath
-            this.recorder.release()
+            this.vm.releaseRecorder()
           })
         }
 
@@ -127,9 +99,7 @@ struct Index {
           .height('25%')
           .margin({ right: 12, bottom: 12 })
           .onClick(async () => {
-            if (this.lastEncodedFile) {
-              await this.player.play(this.lastEncodedFile)
-            }
+            await this.vm.playRecording()
           })
 
           Column() {
@@ -141,12 +111,7 @@ struct Index {
           .height('25%')
           .margin({ bottom: 12 })
           .onClick(async () => {
-            await this.player.release()
-            if (this.lastEncodedFile) {
-              AudioRecorder.deleteFiles(this.lastEncodedFile)
-              this.lastPcmFile = ''
-              this.lastEncodedFile = ''
-            }
+            await this.vm.deleteCache()
           })
         }
         .padding(12)

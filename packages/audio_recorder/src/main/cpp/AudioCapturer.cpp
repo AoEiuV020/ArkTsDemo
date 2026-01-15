@@ -1,13 +1,11 @@
 /*
  * 音频采集Native实现
  * 基于OHAudio实现音频采集功能
- * 输出PCM原始数据，采样参数对标AMR-WB
- *
- * 录音文件大小计算：
- * 采样率(16000) * 声道数(1) * 位深(16bit=2byte) * 时长(秒) = 32000 bytes/秒
- * 即：1分钟录音约 1.83MB
+ * 输出PCM原始数据，支持边录边编码
  */
 #include "AudioCapturer.h"
+#include "AudioEncoder.h"
+#include <cstring>
 #include <sys/stat.h>
 #include "ohaudio/native_audiocapturer.h"
 #include "ohaudio/native_audiostreambuilder.h"
@@ -15,23 +13,28 @@
 
 namespace {
 // 采集器实例
-std::string g_filePath;
+std::string g_outputFilePath;
+std::string g_pcmFilePath;
 FILE *g_file = nullptr;
 OH_AudioCapturer *g_audioCapturer = nullptr;
 OH_AudioStreamBuilder *g_builder = nullptr;
 
-// 采样参数配置 (对标AMR-WB)
-constexpr int32_t SAMPLING_RATE = 16000;                                        // 采样率
-constexpr int32_t CHANNEL_COUNT = 1;                                            // 单声道
-constexpr OH_AudioStream_SampleFormat SAMPLE_FORMAT = AUDIOSTREAM_SAMPLE_S16LE; // 16位有符号小端
+// 获取采集器配置（复用编码配置）
+const AudioEncoderConfig &GetConfig() {
+    static AudioEncoderConfig config = GetCapturerConfig();
+    return config;
+}
 
 /**
- * 音频数据回调 - 将采集到的音频数据写入文件
+ * 音频数据回调 - 将采集到的音频数据写入文件，并推送给编码器
  */
 int32_t OnReadData(OH_AudioCapturer *capturer, void *userData, void *buffer, int32_t bufferLen) {
+    // 写入PCM文件
     if (g_file != nullptr) {
         fwrite(buffer, bufferLen, 1, g_file);
     }
+    // 边录边编码
+    AudioEncoderPushData(buffer, bufferLen);
     return 0;
 }
 
@@ -68,10 +71,16 @@ bool CreateCapturerBuilder() {
         return false;
     }
 
-    // 采样参数配置
-    OH_AudioStreamBuilder_SetSamplingRate(g_builder, SAMPLING_RATE);
-    OH_AudioStreamBuilder_SetChannelCount(g_builder, CHANNEL_COUNT);
-    OH_AudioStreamBuilder_SetSampleFormat(g_builder, SAMPLE_FORMAT);
+    // 采样参数配置（从统一配置获取）
+    const auto &config = GetConfig();
+    OH_AudioStreamBuilder_SetSamplingRate(g_builder, config.sampleRate);
+    OH_AudioStreamBuilder_SetChannelCount(g_builder, config.channelCount);
+    // 采样格式转换：OH_BitsPerSample -> OH_AudioStream_SampleFormat
+    OH_AudioStream_SampleFormat sampleFormat = AUDIOSTREAM_SAMPLE_S16LE;
+    if (config.sampleFormat == SAMPLE_S32LE) {
+        sampleFormat = AUDIOSTREAM_SAMPLE_S32LE;
+    }
+    OH_AudioStreamBuilder_SetSampleFormat(g_builder, sampleFormat);
     OH_AudioStreamBuilder_SetEncodingType(g_builder, AUDIOSTREAM_ENCODING_TYPE_RAW);
     OH_AudioStreamBuilder_SetCapturerInfo(g_builder, AUDIOSTREAM_SOURCE_TYPE_MIC);
     OH_AudioStreamBuilder_SetLatencyMode(g_builder, AUDIOSTREAM_LATENCY_MODE_NORMAL);
@@ -98,25 +107,83 @@ bool GenerateCapturer() {
     OH_AudioStream_Result result = OH_AudioStreamBuilder_GenerateCapturer(g_builder, &g_audioCapturer);
     return result == AUDIOSTREAM_SUCCESS;
 }
+
+/**
+ * 根据文件后缀判断编码类型
+ */
+AudioCodecType GetCodecTypeFromPath(const std::string &path) {
+    size_t dotPos = path.rfind('.');
+    if (dotPos == std::string::npos) {
+        return AudioCodecType::PCM;
+    }
+    std::string ext = path.substr(dotPos);
+    // 转小写
+    for (char &c : ext) {
+        c = static_cast<char>(tolower(c));
+    }
+    if (ext == ".pcm") {
+        return AudioCodecType::PCM;
+    } else if (ext == ".aac") {
+        return AudioCodecType::AAC;
+    } else if (ext == ".amr") {
+        return AudioCodecType::AMR_WB;
+    }
+    // 其他后缀默认AMR-WB
+    return AudioCodecType::AMR_WB;
+}
+
+/**
+ * 根据输出路径生成PCM文件路径
+ * 如果输出是pcm，直接返回；否则将后缀改为.pcm
+ */
+std::string GeneratePcmFilePath(const std::string &outputPath) {
+    size_t dotPos = outputPath.rfind('.');
+    if (dotPos == std::string::npos) {
+        return outputPath + ".pcm";
+    }
+    std::string ext = outputPath.substr(dotPos);
+    for (char &c : ext) {
+        c = static_cast<char>(tolower(c));
+    }
+    if (ext == ".pcm") {
+        return outputPath;
+    }
+    return outputPath.substr(0, dotPos) + ".pcm";
+}
 } // namespace
 
-bool AudioCapturerInit(const std::string &filePath) {
+bool AudioCapturerInit(const std::string &outputFilePath) {
     // 释放旧资源
     ReleaseCapturer();
     CloseFile();
+    AudioEncoderRelease();
 
     // 保存文件路径
-    g_filePath = filePath;
+    g_outputFilePath = outputFilePath;
+    g_pcmFilePath = GeneratePcmFilePath(outputFilePath);
 
-    // 打开文件
-    g_file = fopen(g_filePath.c_str(), "wb");
+    // 打开PCM文件
+    g_file = fopen(g_pcmFilePath.c_str(), "wb");
     if (g_file == nullptr) {
         return false;
+    }
+
+    // 初始化编码器（根据编码文件后缀判断）
+    AudioCodecType codecType = GetCodecTypeFromPath(outputFilePath);
+    if (codecType != AudioCodecType::PCM) {
+        // 编码配置使用采集器的配置，仅修改编码类型
+        AudioEncoderConfig config = GetConfig();
+        config.codecType = codecType;
+        if (!AudioEncoderInit(outputFilePath.c_str(), config)) {
+            CloseFile();
+            return false;
+        }
     }
 
     // 创建采集器
     if (!CreateCapturerBuilder()) {
         CloseFile();
+        AudioEncoderRelease();
         return false;
     }
 
@@ -125,6 +192,7 @@ bool AudioCapturerInit(const std::string &filePath) {
     if (!GenerateCapturer()) {
         ReleaseCapturer();
         CloseFile();
+        AudioEncoderRelease();
         return false;
     }
 
@@ -133,6 +201,7 @@ bool AudioCapturerInit(const std::string &filePath) {
 
 void AudioCapturerStart() {
     if (g_audioCapturer) {
+        AudioEncoderStart();
         OH_AudioCapturer_Start(g_audioCapturer);
     }
 }
@@ -140,12 +209,14 @@ void AudioCapturerStart() {
 void AudioCapturerStop() {
     if (g_audioCapturer) {
         OH_AudioCapturer_Stop(g_audioCapturer);
+        AudioEncoderStop();
     }
 }
 
 void AudioCapturerRelease() {
     ReleaseCapturer();
     CloseFile();
+    AudioEncoderRelease();
 }
 
 int AudioCapturerGetState() {
@@ -159,8 +230,11 @@ int AudioCapturerGetState() {
 
 int64_t AudioCapturerGetFileSize() {
     struct stat statbuf;
-    if (stat(g_filePath.c_str(), &statbuf) == 0) {
+    if (stat(g_pcmFilePath.c_str(), &statbuf) == 0) {
         return statbuf.st_size;
     }
     return 0;
+}
+
+const char *AudioCapturerGetPcmFilePath() { return g_pcmFilePath.c_str();
 }

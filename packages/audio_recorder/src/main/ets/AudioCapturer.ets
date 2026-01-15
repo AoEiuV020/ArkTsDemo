@@ -24,8 +24,15 @@ export enum CapturerState {
  * 采集配置选项
  */
 export interface CapturerOptions {
-  /** 文件保存路径（不含扩展名），默认使用时间戳命名 */
-  fileName?: string
+  /**
+   * 输出文件路径（完整路径包含后缀）
+   * 后缀决定编码格式：
+   * - .pcm: 不编码，只产出PCM文件
+   * - .aac: 产出PCM文件 + AAC编码文件
+   * - .amr: 产出PCM文件 + AMR-WB编码文件
+   * - 其他后缀: 产出PCM文件 + AMR-WB编码文件
+   */
+  outputFilePath: string
 }
 
 /**
@@ -38,23 +45,16 @@ export interface CapturerStateListener {
 
 /**
  * 音频采集工具类
- * 封装Native音频采集实现，提供简洁的业务接口
+ * 封装Native音频采集实现，支持边录边编码
  * 采样参数对标AMR-WB (16000Hz, 单声道)
+ *
+ * 输出文件说明：
+ * - 后缀.pcm时只产出PCM文件
+ * - 其他后缀时产出PCM文件（路径为输出路径后缀改为.pcm）+ 编码文件
  */
 export class AudioCapturer {
-  /** 采集文件扩展名 (PCM原始数据) */
-  private static readonly FILE_EXTENSION = '.pcm'
-  private cacheDir: string
-  private currentFilePath: string = ''
+  private outputFilePath: string = ''
   private listener: CapturerStateListener | undefined = undefined
-
-  /**
-   * 构造音频采集工具
-   * @param cacheDir 缓存目录，通常传入 context.cacheDir
-   */
-  constructor(cacheDir: string) {
-    this.cacheDir = cacheDir
-  }
 
   private _state: CapturerState = CapturerState.Idle
 
@@ -66,10 +66,17 @@ export class AudioCapturer {
   }
 
   /**
-   * 当前采集文件路径
+   * PCM文件路径
    */
-  get filePath(): string {
-    return this.currentFilePath
+  get pcmFilePath(): string {
+    return native.getPcmFilePath()
+  }
+
+  /**
+   * 输出文件路径（传入的路径）
+   */
+  get outputPath(): string {
+    return this.outputFilePath
   }
 
   /**
@@ -83,15 +90,14 @@ export class AudioCapturer {
    * 初始化采集器
    * @param options 采集配置选项
    */
-  init(options?: CapturerOptions) {
+  init(options: CapturerOptions) {
     if (this._state !== CapturerState.Idle) {
       return
     }
 
-    const fileName = options?.fileName ?? `capture_${Date.now()}`
-    this.currentFilePath = `${this.cacheDir}/${fileName}${AudioCapturer.FILE_EXTENSION}`
+    this.outputFilePath = options.outputFilePath
 
-    const success = native.init(this.currentFilePath)
+    const success = native.init(this.outputFilePath)
     if (success) {
       this.updateState(CapturerState.Prepared)
     } else {
@@ -127,21 +133,15 @@ export class AudioCapturer {
 
   /**
    * 释放资源
-   * @returns 采集文件路径
    */
-  release(): string {
-    const savedPath = this.currentFilePath
-
+  release() {
     native.release()
-
-    this.currentFilePath = ''
+    this.outputFilePath = ''
     this.updateState(CapturerState.Idle)
-
-    return savedPath
   }
 
   /**
-   * 获取已采集文件大小
+   * 获取已采集PCM文件大小
    * @returns 文件大小（字节）
    */
   getFileSize(): number {

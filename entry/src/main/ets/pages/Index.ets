@@ -4,13 +4,12 @@ import { AudioCapturer, CapturerState } from 'audio_recorder'
 @Entry
 @Component
 struct Index {
-  private capturer: AudioCapturer | undefined = undefined
+  private capturer: AudioCapturer = new AudioCapturer()
   @State private capturerState: CapturerState = CapturerState.Idle
-  @State private lastCapturedFile: string = ''
+  @State private lastPcmFile: string = ''
+  @State private lastEncodedFile: string = ''
 
   aboutToAppear() {
-    const cacheDir = (getContext() as common.UIAbilityContext).cacheDir
-    this.capturer = new AudioCapturer(cacheDir)
     this.capturer.setListener({
       onStateChange: (state) => {
         this.capturerState = state
@@ -28,15 +27,21 @@ struct Index {
           .fontSize(16)
           .margin(10)
 
-        if (this.lastCapturedFile) {
-          Text(`最后采集: ${this.lastCapturedFile}`)
+        if (this.lastPcmFile) {
+          Text(`PCM文件: ${this.lastPcmFile}`)
+            .fontSize(12)
+            .margin(10)
+        }
+
+        if (this.lastEncodedFile) {
+          Text(`编码文件: ${this.lastEncodedFile}`)
             .fontSize(12)
             .margin(10)
         }
 
         Row() {
           Column() {
-            Text('初始化').fontColor(Color.Black).fontSize(16).margin({ top: 12 })
+            Text('初始化(AMR)').fontColor(Color.Black).fontSize(16).margin({ top: 12 })
           }
           .backgroundColor(Color.White)
           .borderRadius(30)
@@ -44,11 +49,9 @@ struct Index {
           .height('25%')
           .margin({ right: 12, bottom: 12 })
           .onClick(() => {
-            try {
-              this.capturer?.init({ fileName: 'capture_example' })
-            } catch (err) {
-              console.error(`初始化采集器失败: ${err}`)
-            }
+            const cacheDir = (getContext() as common.UIAbilityContext).cacheDir
+            // 使用.amr后缀，触发AMR-WB编码，同时产出.pcm文件
+            this.capturer.init({ outputFilePath: `${cacheDir}/capture_${Date.now()}.aac` })
           })
 
           Column() {
@@ -60,11 +63,7 @@ struct Index {
           .height('25%')
           .margin({ bottom: 12 })
           .onClick(() => {
-            try {
-              this.capturer?.start()
-            } catch (err) {
-              console.error(`开始采集失败: ${err}`)
-            }
+            this.capturer.start()
           })
         }
 
@@ -78,11 +77,7 @@ struct Index {
           .height('25%')
           .margin({ right: 12, bottom: 12 })
           .onClick(() => {
-            try {
-              this.capturer?.stop()
-            } catch (err) {
-              console.error(`停止采集失败: ${err}`)
-            }
+            this.capturer.stop()
           })
 
           Column() {
@@ -94,14 +89,9 @@ struct Index {
           .height('25%')
           .margin({ bottom: 12 })
           .onClick(() => {
-            try {
-              const filePath = this.capturer?.release()
-              if (filePath) {
-                this.lastCapturedFile = filePath
-              }
-            } catch (err) {
-              console.error(`释放资源失败: ${err}`)
-            }
+            this.lastPcmFile = this.capturer.pcmFilePath
+            this.lastEncodedFile = this.capturer.outputPath
+            this.capturer.release()
           })
         }
         .padding(12)

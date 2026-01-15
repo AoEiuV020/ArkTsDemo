@@ -1,9 +1,11 @@
 /**
  * 初始化采集器
- * @param filePath 文件保存路径
+ * @param outputFilePath 输出文件路径
+ *   - 后缀.pcm: 只产出PCM文件
+ *   - 其他后缀: 产出PCM文件 + 编码后文件
  * @returns 是否初始化成功
  */
-export function init(filePath: string): boolean;
+export function init(outputFilePath: string): boolean;
 
 /**
  * 开始采集
@@ -27,7 +29,12 @@ export function release(): void;
 export function getState(): number;
 
 /**
- * 获取已采集文件大小
+ * 获取已采集PCM文件大小
  * @returns 文件大小（字节）
  */
 export function getFileSize(): number;
+
+/**
+ * 获取PCM文件路径
+ */
+export function getPcmFilePath(): string;

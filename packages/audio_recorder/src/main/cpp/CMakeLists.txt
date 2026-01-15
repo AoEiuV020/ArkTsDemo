@@ -14,5 +14,12 @@ include_directories(${NATIVERENDER_ROOT_PATH}
 add_library(audio_recorder SHARED
     napi_init.cpp
     AudioCapturer.cpp
+    AudioEncoder.cpp
 )
-target_link_libraries(audio_recorder PUBLIC libace_napi.z.so libohaudio.so)
+target_link_libraries(audio_recorder PUBLIC
+    libace_napi.z.so
+    libohaudio.so
+    libnative_media_codecbase.so
+    libnative_media_core.so
+    libnative_media_acodec.so
+)

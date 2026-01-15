@@ -51,7 +51,7 @@ struct Index {
           .onClick(() => {
             const cacheDir = (getContext() as common.UIAbilityContext).cacheDir
             // 使用.amr后缀，触发AMR-WB编码，同时产出.pcm文件
-            this.capturer.init({ outputFilePath: `${cacheDir}/capture_${Date.now()}.aac` })
+            this.capturer.init({ outputFilePath: `${cacheDir}/capture_${Date.now()}.amr` })
           })
 
           Column() {

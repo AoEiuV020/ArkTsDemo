@@ -1,6 +1,11 @@
 /*
  * 音频编码配置参数
  * 定义编码器类型和参数配置
+ *
+ * 根据输出文件后缀自动选择配置：
+ * - .pcm: 不编码，只产出PCM文件
+ * - .aac: AAC编码 (44.1kHz, 立体声)
+ * - .amr: AMR-WB编码 (16kHz, 单声道)
  */
 #ifndef AUDIO_ENCODER_CONFIG_H
 #define AUDIO_ENCODER_CONFIG_H
@@ -15,9 +20,9 @@
 enum class AudioCodecType {
     /** 不编码，直接输出PCM */
     PCM = 0,
-    /** AAC编码 (默认示例参数) */
+    /** AAC编码 */
     AAC = 1,
-    /** AMR-WB编码 (16kHz单声道) */
+    /** AMR-WB编码 */
     AMR_WB = 2,
 };
 
@@ -42,13 +47,13 @@ struct AudioEncoderConfig {
 };
 
 /**
- * 获取AMR-WB编码配置（基础配置，其他配置基于此扩展）
+ * 获取AMR-WB编码配置
  * 16000Hz采样率、单声道、23850bps码率
  *
  * AMR-WB支持的码率: 6600, 8850, 12650, 14250, 15850, 18250, 19850, 23050, 23850
  * 23850为最高质量
  *
- * 录音文件大小计算：
+ * PCM文件大小计算：
  * 采样率(16000) * 声道数(1) * 位深(16bit=2byte) * 时长(秒) = 32000 bytes/秒
  * 即：1分钟录音约 1.83MB
  */
@@ -64,20 +69,14 @@ inline AudioEncoderConfig GetAmrWbConfig() {
 }
 
 /**
- * 获取PCM配置 (不编码)
- * 复用AMR-WB的采样参数，仅编码类型不同
- */
-inline AudioEncoderConfig GetPcmConfig() {
-    AudioEncoderConfig config = GetAmrWbConfig();
-    config.codecType = AudioCodecType::PCM;
-    return config;
-}
-
-/**
- * 获取默认AAC编码配置 (网站示例参数)
+ * 获取AAC编码配置 (网站示例参数)
  * 44100Hz采样率、2声道立体声、32000bps码率
+ *
+ * PCM文件大小计算：
+ * 采样率(44100) * 声道数(2) * 位深(16bit=2byte) * 时长(秒) = 176400 bytes/秒
+ * 即：1分钟录音约 10.1MB
  */
-inline AudioEncoderConfig GetDefaultAacConfig() {
+inline AudioEncoderConfig GetAacConfig() {
     AudioEncoderConfig config;
     config.codecType = AudioCodecType::AAC;
     config.sampleRate = 44100;
@@ -87,6 +86,24 @@ inline AudioEncoderConfig GetDefaultAacConfig() {
     config.sampleFormat = SAMPLE_S16LE;
     config.aacProfile = AAC_PROFILE_LC;
     return config;
+}
+
+/**
+ * 根据编码类型获取配置
+ */
+inline AudioEncoderConfig GetConfigByCodecType(AudioCodecType type) {
+    switch (type) {
+    case AudioCodecType::AAC:
+        return GetAacConfig();
+    case AudioCodecType::AMR_WB:
+        return GetAmrWbConfig();
+    default: {
+        // PCM使用AMR-WB的采样参数
+        AudioEncoderConfig config = GetAmrWbConfig();
+        config.codecType = AudioCodecType::PCM;
+        return config;
+    }
+    }
 }
 
 /**
@@ -129,18 +146,6 @@ inline int32_t GetInputFrameBytes(const AudioEncoderConfig &config) {
         return 0;
     }
     return samplesPerFrame * config.channelCount * sizeof(int16_t);
-}
-
-/**
- * ========== 采集器使用的配置 ==========
- * 修改此函数可一行代码切换采集参数
- */
-inline AudioEncoderConfig GetCapturerConfig() {
-    // 当前使用AMR-WB参数采集（16kHz单声道）
-//    return GetAmrWbConfig();
-
-    // 切换到AAC参数采集（44.1kHz立体声），取消下行注释：
-    return GetDefaultAacConfig();
 }
 
 #endif // AUDIO_ENCODER_CONFIG_H

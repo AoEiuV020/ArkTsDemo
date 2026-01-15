@@ -2,6 +2,11 @@
  * 音频采集Native实现
  * 基于OHAudio实现音频采集功能
  * 输出PCM原始数据，支持边录边编码
+ *
+ * 根据输出文件后缀自动选择采集和编码配置：
+ * - .pcm: 只产出PCM文件，使用AMR-WB参数采集
+ * - .aac: 产出PCM + AAC文件，使用AAC参数采集
+ * - .amr: 产出PCM + AMR文件，使用AMR-WB参数采集
  */
 #include "AudioCapturer.h"
 #include "AudioEncoder.h"
@@ -18,12 +23,7 @@ std::string g_pcmFilePath;
 FILE *g_file = nullptr;
 OH_AudioCapturer *g_audioCapturer = nullptr;
 OH_AudioStreamBuilder *g_builder = nullptr;
-
-// 获取采集器配置（复用编码配置）
-const AudioEncoderConfig &GetConfig() {
-    static AudioEncoderConfig config = GetCapturerConfig();
-    return config;
-}
+AudioEncoderConfig g_config; // 当前使用的配置
 
 /**
  * 音频数据回调 - 将采集到的音频数据写入文件，并推送给编码器
@@ -71,13 +71,12 @@ bool CreateCapturerBuilder() {
         return false;
     }
 
-    // 采样参数配置（从统一配置获取）
-    const auto &config = GetConfig();
-    OH_AudioStreamBuilder_SetSamplingRate(g_builder, config.sampleRate);
-    OH_AudioStreamBuilder_SetChannelCount(g_builder, config.channelCount);
+    // 采样参数配置（根据后缀选择的配置）
+    OH_AudioStreamBuilder_SetSamplingRate(g_builder, g_config.sampleRate);
+    OH_AudioStreamBuilder_SetChannelCount(g_builder, g_config.channelCount);
     // 采样格式转换：OH_BitsPerSample -> OH_AudioStream_SampleFormat
     OH_AudioStream_SampleFormat sampleFormat = AUDIOSTREAM_SAMPLE_S16LE;
-    if (config.sampleFormat == SAMPLE_S32LE) {
+    if (g_config.sampleFormat == SAMPLE_S32LE) {
         sampleFormat = AUDIOSTREAM_SAMPLE_S32LE;
     }
     OH_AudioStreamBuilder_SetSampleFormat(g_builder, sampleFormat);
@@ -162,19 +161,19 @@ bool AudioCapturerInit(const std::string &outputFilePath) {
     g_outputFilePath = outputFilePath;
     g_pcmFilePath = GeneratePcmFilePath(outputFilePath);
 
+    // 根据后缀获取配置（采集和编码使用相同配置）
+    AudioCodecType codecType = GetCodecTypeFromPath(outputFilePath);
+    g_config = GetConfigByCodecType(codecType);
+
     // 打开PCM文件
     g_file = fopen(g_pcmFilePath.c_str(), "wb");
     if (g_file == nullptr) {
         return false;
     }
 
-    // 初始化编码器（根据编码文件后缀判断）
-    AudioCodecType codecType = GetCodecTypeFromPath(outputFilePath);
+    // 初始化编码器（非PCM模式才需要编码）
     if (codecType != AudioCodecType::PCM) {
-        // 编码配置使用采集器的配置，仅修改编码类型
-        AudioEncoderConfig config = GetConfig();
-        config.codecType = codecType;
-        if (!AudioEncoderInit(outputFilePath.c_str(), config)) {
+        if (!AudioEncoderInit(outputFilePath.c_str(), g_config)) {
             CloseFile();
             return false;
         }

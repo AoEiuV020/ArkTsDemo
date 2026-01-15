@@ -40,7 +40,11 @@
     },
     {
       "name": "exampleblanklibrary",
-      "srcPath": "./packages/exampleblanklibrary",
+      "srcPath": "./packages/exampleblanklibrary"
+    },
+    {
+      "name": "audio_recorder",
+      "srcPath": "./packages/audio_recorder"
     }
   ]
 }

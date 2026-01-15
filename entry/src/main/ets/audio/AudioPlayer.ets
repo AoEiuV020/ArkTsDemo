@@ -141,7 +141,6 @@ export class AudioPlayer {
       switch (state) {
         case 'idle':
           this.updateState(PlayerState.Idle)
-          this.avPlayer?.release()
           break
         case 'initialized':
           this.updateState(PlayerState.Initialized)
@@ -159,11 +158,9 @@ export class AudioPlayer {
           break
         case 'completed':
           this.updateState(PlayerState.Completed)
-          this.avPlayer?.stop()
           break
         case 'stopped':
           this.updateState(PlayerState.Stopped)
-          this.avPlayer?.reset()
           break
         case 'released':
           this.updateState(PlayerState.Idle)

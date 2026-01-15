@@ -36,6 +36,7 @@ export interface PlayerStateListener {
  */
 export class AudioPlayer {
   private avPlayer: media.AVPlayer | undefined = undefined
+  private audioFile: fileIo.File | undefined = undefined
   private listener: PlayerStateListener | undefined = undefined
   private _state: PlayerState = PlayerState.Idle
 
@@ -63,8 +64,8 @@ export class AudioPlayer {
     this.avPlayer = await media.createAVPlayer()
     this.setupPlayerCallbacks()
 
-    const file = await fileIo.open(filePath)
-    this.avPlayer.url = `fd://${file.fd}`
+    this.audioFile = await fileIo.open(filePath)
+    this.avPlayer.url = `fd://${this.audioFile.fd}`
   }
 
   /**
@@ -115,6 +116,10 @@ export class AudioPlayer {
       await this.avPlayer.reset()
       await this.avPlayer.release()
       this.avPlayer = undefined
+    }
+    if (this.audioFile) {
+      fileIo.closeSync(this.audioFile)
+      this.audioFile = undefined
     }
     this.updateState(PlayerState.Idle)
   }

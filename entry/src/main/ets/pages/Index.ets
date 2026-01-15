@@ -1,4 +1,4 @@
-import { common } from '@kit.AbilityKit'
+import { abilityAccessCtrl, common, Permissions } from '@kit.AbilityKit'
 import { AudioRecorder, RecorderState } from 'audio_recorder'
 import { AudioPlayer, PlayerState } from '../audio/AudioPlayer'
 
@@ -29,6 +29,14 @@ struct Index {
         console.error(message)
       },
     })
+    this.requestPermissions()
+  }
+
+  private async requestPermissions() {
+    const permissions: Permissions[] = ['ohos.permission.MICROPHONE']
+    const atManager = abilityAccessCtrl.createAtManager()
+    const context = getContext() as common.UIAbilityContext
+    await atManager.requestPermissionsFromUser(context, permissions)
   }
 
   build() {

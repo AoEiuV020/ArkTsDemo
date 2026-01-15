@@ -1,45 +1,114 @@
+/*
+ * NAPI胶水层
+ * 负责ArkTS与Native C++的交互
+ */
 #include "napi/native_api.h"
+#include "AudioCapturer.h"
 
-static napi_value Add(napi_env env, napi_callback_info info) {
-    size_t argc = 2;
-    napi_value args[2] = {nullptr};
+namespace {
+    /**
+     * 从NAPI参数中获取字符串
+     */
+    std::string GetStringFromArgs(napi_env env, napi_callback_info info) {
+        size_t argc = 1;
+        napi_value args[1] = {nullptr};
+        napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
 
-    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+        size_t strLen = 0;
+        napi_get_value_string_utf8(env, args[0], nullptr, 0, &strLen);
 
-    napi_valuetype valuetype0;
-    napi_typeof(env, args[0], &valuetype0);
+        std::string result(strLen, '\0');
+        napi_get_value_string_utf8(env, args[0], &result[0], strLen + 1, &strLen);
 
-    napi_valuetype valuetype1;
-    napi_typeof(env, args[1], &valuetype1);
+        return result;
+    }
+}
 
-    double value0;
-    napi_get_value_double(env, args[0], &value0);
+/**
+ * 初始化采集器
+ * @param filePath 文件保存路径
+ * @returns 是否初始化成功
+ */
+static napi_value NapiInit(napi_env env, napi_callback_info info) {
+    std::string filePath = GetStringFromArgs(env, info);
+    bool success = AudioCapturerInit(filePath);
 
-    double value1;
-    napi_get_value_double(env, args[1], &value1);
+    napi_value result;
+    napi_get_boolean(env, success, &result);
+    return result;
+}
 
-    napi_value sum;
-    napi_create_double(env, value0 + value1, &sum);
+/**
+ * 开始采集
+ */
+static napi_value NapiStart(napi_env env, napi_callback_info info) {
+    AudioCapturerStart();
+    return nullptr;
+}
 
-    return sum;
+/**
+ * 停止采集
+ */
+static napi_value NapiStop(napi_env env, napi_callback_info info) {
+    AudioCapturerStop();
+    return nullptr;
+}
+
+/**
+ * 释放资源
+ */
+static napi_value NapiRelease(napi_env env, napi_callback_info info) {
+    AudioCapturerRelease();
+    return nullptr;
+}
+
+/**
+ * 获取采集器状态
+ */
+static napi_value NapiGetState(napi_env env, napi_callback_info info) {
+    int state = AudioCapturerGetState();
+
+    napi_value result;
+    napi_create_int32(env, state, &result);
+    return result;
+}
+
+/**
+ * 获取已采集文件大小
+ */
+static napi_value NapiGetFileSize(napi_env env, napi_callback_info info) {
+    int64_t fileSize = AudioCapturerGetFileSize();
+
+    napi_value result;
+    napi_create_int64(env, fileSize, &result);
+    return result;
 }
 
 EXTERN_C_START
-static napi_value Init(napi_env env, napi_value exports) {
-    napi_property_descriptor desc[] = {{"add", nullptr, Add, nullptr, nullptr, nullptr, napi_default, nullptr}};
+static napi_value ModuleInit(napi_env env, napi_value exports) {
+    napi_property_descriptor desc[] = {
+        {"init", nullptr, NapiInit, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"start", nullptr, NapiStart, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"stop", nullptr, NapiStop, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"release", nullptr, NapiRelease, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"getState", nullptr, NapiGetState, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"getFileSize", nullptr, NapiGetFileSize, nullptr, nullptr, nullptr, napi_default, nullptr},
+    };
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
     return exports;
 }
 EXTERN_C_END
 
-static napi_module demoModule = {
+static napi_module audioRecorderModule = {
     .nm_version = 1,
     .nm_flags = 0,
     .nm_filename = nullptr,
-    .nm_register_func = Init,
+    .nm_register_func = ModuleInit,
     .nm_modname = "audio_recorder",
-    .nm_priv = ((void *)0),
+    .nm_priv = nullptr,
     .reserved = {0},
 };
 
-extern "C" __attribute__((constructor)) void RegisterAudio_recorderModule(void) { napi_module_register(&demoModule); }
+extern "C" __attribute__((constructor)) void RegisterAudioRecorderModule() {
+    napi_module_register(&audioRecorderModule);
+}

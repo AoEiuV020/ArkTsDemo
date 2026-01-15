@@ -5,6 +5,9 @@
   "main": "",
   "author": "",
   "license": "",
-  "dependencies": {}
+  "dependencies": {
+    "audio_recorder": "file:../packages/audio_recorder"
+  },
+  "devDependencies": {},
+  "dynamicDependencies": {}
 }
-

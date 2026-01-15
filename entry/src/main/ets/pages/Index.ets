@@ -1,5 +1,5 @@
 import { common } from '@kit.AbilityKit'
-import { AudioCapturer, CapturerState } from '../audio'
+import { AudioCapturer, CapturerState } from 'audio_recorder'
 
 @Entry
 @Component
@@ -43,9 +43,9 @@ struct Index {
           .width('45%')
           .height('25%')
           .margin({ right: 12, bottom: 12 })
-          .onClick(async () => {
+          .onClick(() => {
             try {
-              await this.capturer?.init()
+              this.capturer?.init({ fileName: 'capture_example' })
             } catch (err) {
               console.error(`初始化采集器失败: ${err}`)
             }
@@ -59,9 +59,9 @@ struct Index {
           .width('45%')
           .height('25%')
           .margin({ bottom: 12 })
-          .onClick(async () => {
+          .onClick(() => {
             try {
-              await this.capturer?.start()
+              this.capturer?.start()
             } catch (err) {
               console.error(`开始采集失败: ${err}`)
             }
@@ -77,9 +77,9 @@ struct Index {
           .width('45%')
           .height('25%')
           .margin({ right: 12, bottom: 12 })
-          .onClick(async () => {
+          .onClick(() => {
             try {
-              await this.capturer?.stop()
+              this.capturer?.stop()
             } catch (err) {
               console.error(`停止采集失败: ${err}`)
             }
@@ -93,9 +93,9 @@ struct Index {
           .width('45%')
           .height('25%')
           .margin({ bottom: 12 })
-          .onClick(async () => {
+          .onClick(() => {
             try {
-              const filePath = await this.capturer?.release()
+              const filePath = this.capturer?.release()
               if (filePath) {
                 this.lastCapturedFile = filePath
               }

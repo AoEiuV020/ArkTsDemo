@@ -1,55 +1,53 @@
 /*
- * 系统 AAC 编码器实现
- * 基于 OH_AVCodec 实现 AAC 编码
+ * 系统编码器实现
+ * 基于 OH_AVCodec 实现多种格式编码 (AAC/MP3等)
  */
-#include "SystemAacEncoder.h"
+#include "SystemCodecEncoder.h"
 #include <cstring>
 #include <chrono>
 #include <thread>
 #include <multimedia/player_framework/native_avcodec_audiocodec.h>
 #include <multimedia/player_framework/native_avformat.h>
 #include <multimedia/player_framework/native_avbuffer.h>
-#include <multimedia/native_audio_channel_layout.h>
 
-SystemAacEncoder::SystemAacEncoder() = default;
+SystemCodecEncoder::SystemCodecEncoder(const AudioEncoderConfig &config) : config_(config) {}
 
-SystemAacEncoder::~SystemAacEncoder() { release(); }
+SystemCodecEncoder::~SystemCodecEncoder() { release(); }
 
-void SystemAacEncoder::setBitrate(uint64_t bitrate) { bitrate_ = bitrate; }
-
-void SystemAacEncoder::onError(OH_AVCodec *codec, int32_t errorCode, void *userData) {
+void SystemCodecEncoder::onError(OH_AVCodec *codec, int32_t errorCode, void *userData) {
     (void)codec;
     (void)errorCode;
     (void)userData;
 }
 
-void SystemAacEncoder::onOutputFormatChanged(OH_AVCodec *codec, OH_AVFormat *format, void *userData) {
+void SystemCodecEncoder::onOutputFormatChanged(OH_AVCodec *codec, OH_AVFormat *format, void *userData) {
     (void)codec;
     (void)format;
     (void)userData;
 }
 
-void SystemAacEncoder::onInputBufferAvailable(OH_AVCodec *codec, uint32_t index, OH_AVBuffer *data, void *userData) {
+void SystemCodecEncoder::onInputBufferAvailable(OH_AVCodec *codec, uint32_t index, OH_AVBuffer *data, void *userData) {
     (void)codec;
-    auto *self = static_cast<SystemAacEncoder *>(userData);
+    auto *self = static_cast<SystemCodecEncoder *>(userData);
     std::unique_lock<std::mutex> lock(self->inMutex_);
     self->inQueue_.push(index);
     self->inBufferQueue_.push(data);
     self->inCond_.notify_all();
 }
 
-void SystemAacEncoder::onOutputBufferAvailable(OH_AVCodec *codec, uint32_t index, OH_AVBuffer *data, void *userData) {
+void SystemCodecEncoder::onOutputBufferAvailable(OH_AVCodec *codec, uint32_t index, OH_AVBuffer *data, void *userData) {
     (void)codec;
-    auto *self = static_cast<SystemAacEncoder *>(userData);
+    auto *self = static_cast<SystemCodecEncoder *>(userData);
     std::unique_lock<std::mutex> lock(self->outMutex_);
     self->outQueue_.push(index);
     self->outBufferQueue_.push(data);
 }
 
-bool SystemAacEncoder::init(const char *outputPath, uint32_t sampleRate, uint32_t channelCount) {
-    sampleRate_ = sampleRate;
-    channelCount_ = channelCount;
-    frameBytes_ = kSamplesPerFrame * channelCount_ * sizeof(int16_t);
+bool SystemCodecEncoder::init(const char *outputPath, uint32_t sampleRate, uint32_t channelCount) {
+    // init 参数覆盖配置（兼容接口）
+    config_.sampleRate = sampleRate;
+    config_.channelCount = channelCount;
+    frameBytes_ = config_.samplesPerFrame * config_.channelCount * sizeof(int16_t);
 
     // 打开输出文件
     outputFile_ = fopen(outputPath, "wb");
@@ -58,7 +56,13 @@ bool SystemAacEncoder::init(const char *outputPath, uint32_t sampleRate, uint32_
     }
 
     // 创建编码器
-    encoder_ = OH_AudioCodec_CreateByMime(OH_AVCODEC_MIMETYPE_AUDIO_AAC, true);
+    const char *mimeType = GetCodecMimeType(config_.codecType);
+    if (!mimeType) {
+        fclose(outputFile_);
+        outputFile_ = nullptr;
+        return false;
+    }
+    encoder_ = OH_AudioCodec_CreateByMime(mimeType, true);
     if (!encoder_) {
         fclose(outputFile_);
         outputFile_ = nullptr;
@@ -78,13 +82,15 @@ bool SystemAacEncoder::init(const char *outputPath, uint32_t sampleRate, uint32_
 
     // 配置编码器参数
     OH_AVFormat *format = OH_AVFormat_Create();
-    OH_AVFormat_SetIntValue(format, OH_MD_KEY_AUD_CHANNEL_COUNT, channelCount_);
-    OH_AVFormat_SetIntValue(format, OH_MD_KEY_AUD_SAMPLE_RATE, sampleRate_);
-    OH_AVFormat_SetLongValue(format, OH_MD_KEY_BITRATE, bitrate_);
-    OH_AVFormat_SetIntValue(format, OH_MD_KEY_AUDIO_SAMPLE_FORMAT, SAMPLE_S16LE);
-    OH_AudioChannelLayout layout = (channelCount_ == 2) ? CH_LAYOUT_STEREO : CH_LAYOUT_MONO;
-    OH_AVFormat_SetLongValue(format, OH_MD_KEY_CHANNEL_LAYOUT, layout);
-    OH_AVFormat_SetIntValue(format, OH_MD_KEY_PROFILE, AAC_PROFILE_LC);
+    OH_AVFormat_SetIntValue(format, OH_MD_KEY_AUD_CHANNEL_COUNT, config_.channelCount);
+    OH_AVFormat_SetIntValue(format, OH_MD_KEY_AUD_SAMPLE_RATE, config_.sampleRate);
+    OH_AVFormat_SetLongValue(format, OH_MD_KEY_BITRATE, config_.bitrate);
+    OH_AVFormat_SetIntValue(format, OH_MD_KEY_AUDIO_SAMPLE_FORMAT, config_.sampleFormat);
+    OH_AVFormat_SetLongValue(format, OH_MD_KEY_CHANNEL_LAYOUT, config_.channelLayout);
+    // AAC 特有参数
+    if (config_.codecType == AudioCodecType::AAC) {
+        OH_AVFormat_SetIntValue(format, OH_MD_KEY_PROFILE, config_.aacProfile);
+    }
 
     ret = OH_AudioCodec_Configure(encoder_, format);
     OH_AVFormat_Destroy(format);
@@ -110,7 +116,7 @@ bool SystemAacEncoder::init(const char *outputPath, uint32_t sampleRate, uint32_
     return true;
 }
 
-bool SystemAacEncoder::start() {
+bool SystemCodecEncoder::start() {
     if (!encoder_ || !outputFile_) {
         return false;
     }
@@ -121,7 +127,7 @@ bool SystemAacEncoder::start() {
     return ret == AV_ERR_OK;
 }
 
-void SystemAacEncoder::pushData(const void *data, int32_t size) {
+void SystemCodecEncoder::pushData(const void *data, int32_t size) {
     if (!running_ || !encoder_) {
         return;
     }
@@ -137,7 +143,7 @@ void SystemAacEncoder::pushData(const void *data, int32_t size) {
     }
 }
 
-bool SystemAacEncoder::pushFrame(const uint8_t *data, int32_t size, bool isEos) {
+bool SystemCodecEncoder::pushFrame(const uint8_t *data, int32_t size, bool isEos) {
     std::unique_lock<std::mutex> lock(inMutex_);
     // 等待可用的输入缓冲区
     if (!inCond_.wait_for(lock, std::chrono::milliseconds(100), [this] { return !inQueue_.empty() || !running_; })) {
@@ -175,7 +181,7 @@ bool SystemAacEncoder::pushFrame(const uint8_t *data, int32_t size, bool isEos) 
     return true;
 }
 
-void SystemAacEncoder::processOutput() {
+void SystemCodecEncoder::processOutput() {
     std::unique_lock<std::mutex> lock(outMutex_);
     while (!outQueue_.empty()) {
         uint32_t index = outQueue_.front();
@@ -197,7 +203,7 @@ void SystemAacEncoder::processOutput() {
     }
 }
 
-void SystemAacEncoder::stop() {
+void SystemCodecEncoder::stop() {
     if (!running_) {
         return;
     }
@@ -222,7 +228,7 @@ void SystemAacEncoder::stop() {
     OH_AudioCodec_Stop(encoder_);
 }
 
-void SystemAacEncoder::release() {
+void SystemCodecEncoder::release() {
     if (encoder_) {
         OH_AudioCodec_Destroy(encoder_);
         encoder_ = nullptr;
@@ -236,7 +242,7 @@ void SystemAacEncoder::release() {
     running_ = false;
 }
 
-void SystemAacEncoder::clearQueues() {
+void SystemCodecEncoder::clearQueues() {
     std::unique_lock<std::mutex> inLock(inMutex_);
     while (!inQueue_.empty())
         inQueue_.pop();

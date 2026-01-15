@@ -141,6 +141,8 @@ AudioCodecType GetCodecTypeFromPath(const std::string &path) {
         return AudioCodecType::AAC;
     } else if (ext == ".amr") {
         return AudioCodecType::AMR_WB;
+    } else if (ext == ".mp3") {
+        return AudioCodecType::MP3;
     }
     // 其他后缀默认AMR-WB
     return AudioCodecType::AMR_WB;
@@ -188,7 +190,7 @@ bool AudioCapturerInit(const std::string &outputFilePath) {
 
     // 创建编码器（非PCM模式才需要编码）
     if (codecType != AudioCodecType::PCM) {
-        g_encoder = CreateEncoder(codecType);
+        g_encoder = CreateEncoder(g_config);
         if (g_encoder) {
             if (!g_encoder->init(outputFilePath.c_str(), g_config.sampleRate, g_config.channelCount)) {
                 CloseFile();

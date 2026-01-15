@@ -19,7 +19,7 @@ add_library(audio_recorder SHARED
     AudioCapturer.cpp
     AudioEncoderFactory.cpp
     VoAmrWbEncoder.cpp
-    SystemAacEncoder.cpp
+    SystemCodecEncoder.cpp
 )
 target_link_libraries(audio_recorder PUBLIC
     libace_napi.z.so

@@ -1,37 +1,39 @@
 import { common } from '@kit.AbilityKit'
 import { RecorderState } from 'audio_recorder'
 import { PlayerState } from '../audio/AudioPlayer'
-import { RecordingViewModel } from './RecordingViewModel'
+import { RecorderViewModel } from './RecorderViewModel'
+import { PlayerViewModel } from './PlayerViewModel'
 
 @Entry
 @Component
 struct Index {
-  private vm: RecordingViewModel = new RecordingViewModel()
+  private recorder: RecorderViewModel = new RecorderViewModel()
+  private player: PlayerViewModel = new PlayerViewModel()
 
   aboutToAppear() {
     const context = getContext() as common.UIAbilityContext
-    this.vm.requestPermissions(context)
+    this.recorder.requestPermissions(context)
   }
 
   build() {
     Scroll() {
       Column() {
-        Text(`录音状态: ${RecorderState[this.vm.recorderState]}`)
+        Text(`录音状态: ${RecorderState[this.recorder.state]}`)
           .fontSize(16)
           .margin(10)
 
-        Text(`播放状态: ${PlayerState[this.vm.playerState]}`)
+        Text(`播放状态: ${PlayerState[this.player.state]}`)
           .fontSize(16)
           .margin(10)
 
-        if (this.vm.lastPcmFile) {
-          Text(`PCM文件: ${this.vm.lastPcmFile}`)
+        if (this.recorder.lastPcmFile) {
+          Text(`PCM文件: ${this.recorder.lastPcmFile}`)
             .fontSize(12)
             .margin(10)
         }
 
-        if (this.vm.lastEncodedFile) {
-          Text(`编码文件: ${this.vm.lastEncodedFile}`)
+        if (this.recorder.lastEncodedFile) {
+          Text(`编码文件: ${this.recorder.lastEncodedFile}`)
             .fontSize(12)
             .margin(10)
         }
@@ -47,7 +49,7 @@ struct Index {
           .margin({ right: 12, bottom: 12 })
           .onClick(async () => {
             const cacheDir = (getContext() as common.UIAbilityContext).cacheDir
-            await this.vm.initRecorder(cacheDir)
+            await this.recorder.init(cacheDir)
           })
 
           Column() {
@@ -59,7 +61,7 @@ struct Index {
           .height('25%')
           .margin({ bottom: 12 })
           .onClick(() => {
-            this.vm.startRecording()
+            this.recorder.start()
           })
         }
 
@@ -73,7 +75,7 @@ struct Index {
           .height('25%')
           .margin({ right: 12, bottom: 12 })
           .onClick(() => {
-            this.vm.stopRecording()
+            this.recorder.stop()
           })
 
           Column() {
@@ -85,7 +87,7 @@ struct Index {
           .height('25%')
           .margin({ bottom: 12 })
           .onClick(async () => {
-            await this.vm.releaseRecorder()
+            await this.recorder.release()
           })
         }
 
@@ -99,7 +101,9 @@ struct Index {
           .height('25%')
           .margin({ right: 12, bottom: 12 })
           .onClick(async () => {
-            await this.vm.playRecording()
+            if (this.recorder.lastEncodedFile) {
+              await this.player.play(this.recorder.lastEncodedFile)
+            }
           })
 
           Column() {
@@ -111,7 +115,8 @@ struct Index {
           .height('25%')
           .margin({ bottom: 12 })
           .onClick(async () => {
-            await this.vm.deleteCache()
+            await this.player.release()
+            this.recorder.deleteFiles()
           })
         }
         .padding(12)

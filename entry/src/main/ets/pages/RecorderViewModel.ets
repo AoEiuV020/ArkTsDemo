@@ -1,9 +1,8 @@
 import { abilityAccessCtrl, common, Permissions } from '@kit.AbilityKit'
 import { AudioRecorder, RecorderState } from 'audio_recorder'
-import { AudioPlayer, PlayerState } from '../audio/AudioPlayer'
 import { fileIo } from '@kit.CoreFileKit'
 
-const TAG = 'RecordingViewModel'
+const TAG = 'RecorderViewModel'
 
 /**
  * 打印日志
@@ -13,35 +12,23 @@ function log(message: string) {
 }
 
 /**
- * 录音页面 ViewModel
+ * 录音 ViewModel
  */
 @ObservedV2
-export class RecordingViewModel {
-  @Trace recorderState: RecorderState = RecorderState.Idle
-  @Trace playerState: PlayerState = PlayerState.Idle
+export class RecorderViewModel {
+  @Trace state: RecorderState = RecorderState.Idle
   @Trace lastPcmFile: string = ''
   @Trace lastEncodedFile: string = ''
   private recorder: AudioRecorder = new AudioRecorder()
-  private player: AudioPlayer = new AudioPlayer()
 
   constructor() {
     this.recorder.setListener({
       onStateChange: (state) => {
         log(`录音状态变更: ${RecorderState[state]}`)
-        this.recorderState = state
+        this.state = state
       },
       onError: (message) => {
         log(`录音错误: ${message}`)
-        console.error(message)
-      },
-    })
-    this.player.setListener({
-      onStateChange: (state) => {
-        log(`播放状态变更: ${PlayerState[state]}`)
-        this.playerState = state
-      },
-      onError: (message) => {
-        log(`播放错误: ${message}`)
         console.error(message)
       },
     })
@@ -85,7 +72,7 @@ export class RecordingViewModel {
   /**
    * 初始化录音器
    */
-  async initRecorder(cacheDir: string) {
+  async init(cacheDir: string) {
     log('初始化录音器开始')
     await this.printOpenFdList()
     try {
@@ -100,7 +87,7 @@ export class RecordingViewModel {
   /**
    * 开始录音
    */
-  startRecording() {
+  start() {
     log('开始录音')
     try {
       this.recorder.start()
@@ -114,7 +101,7 @@ export class RecordingViewModel {
   /**
    * 停止录音
    */
-  stopRecording() {
+  stop() {
     log('停止录音')
     try {
       this.recorder.stop()
@@ -128,7 +115,7 @@ export class RecordingViewModel {
   /**
    * 释放录音器资源
    */
-  async releaseRecorder() {
+  async release() {
     log('释放录音器资源开始')
     try {
       this.lastPcmFile = this.recorder.pcmFilePath
@@ -143,28 +130,11 @@ export class RecordingViewModel {
   }
 
   /**
-   * 播放录音
-   */
-  async playRecording() {
-    log('播放录音开始')
-    try {
-      if (this.lastEncodedFile) {
-        await this.player.play(this.lastEncodedFile)
-      }
-      log('播放录音结束')
-    } catch (error) {
-      const e = error as Error
-      log(`播放录音失败: ${e.message}`)
-    }
-  }
-
-  /**
    * 删除缓存文件
    */
-  async deleteCache() {
+  deleteFiles() {
     log('删除缓存开始')
     try {
-      await this.player.release()
       if (this.lastEncodedFile) {
         AudioRecorder.deleteFiles(this.lastEncodedFile)
         this.lastPcmFile = ''

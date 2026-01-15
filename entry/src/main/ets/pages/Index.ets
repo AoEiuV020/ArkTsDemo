@@ -1,18 +1,18 @@
 import { common } from '@kit.AbilityKit'
-import { AudioCapturer, CapturerState } from 'audio_recorder'
+import { AudioRecorder, RecorderState } from 'audio_recorder'
 
 @Entry
 @Component
 struct Index {
-  private capturer: AudioCapturer = new AudioCapturer()
-  @State private capturerState: CapturerState = CapturerState.Idle
+  private recorder: AudioRecorder = new AudioRecorder()
+  @State private recorderState: RecorderState = RecorderState.Idle
   @State private lastPcmFile: string = ''
   @State private lastEncodedFile: string = ''
 
   aboutToAppear() {
-    this.capturer.setListener({
+    this.recorder.setListener({
       onStateChange: (state) => {
-        this.capturerState = state
+        this.recorderState = state
       },
       onError: (message) => {
         console.error(message)
@@ -23,7 +23,7 @@ struct Index {
   build() {
     Scroll() {
       Column() {
-        Text(`采集状态: ${CapturerState[this.capturerState]}`)
+        Text(`录音状态: ${RecorderState[this.recorderState]}`)
           .fontSize(16)
           .margin(10)
 
@@ -51,7 +51,7 @@ struct Index {
           .onClick(() => {
             const cacheDir = (getContext() as common.UIAbilityContext).cacheDir
             // 使用.amr后缀，触发AMR-WB编码，同时产出.pcm文件
-            this.capturer.init({ outputFilePath: `${cacheDir}/capture_${Date.now()}.amr` })
+            this.recorder.init({ outputFilePath: `${cacheDir}/capture_${Date.now()}.amr` })
           })
 
           Column() {
@@ -63,7 +63,7 @@ struct Index {
           .height('25%')
           .margin({ bottom: 12 })
           .onClick(() => {
-            this.capturer.start()
+            this.recorder.start()
           })
         }
 
@@ -77,7 +77,7 @@ struct Index {
           .height('25%')
           .margin({ right: 12, bottom: 12 })
           .onClick(() => {
-            this.capturer.stop()
+            this.recorder.stop()
           })
 
           Column() {
@@ -89,9 +89,9 @@ struct Index {
           .height('25%')
           .margin({ bottom: 12 })
           .onClick(() => {
-            this.lastPcmFile = this.capturer.pcmFilePath
-            this.lastEncodedFile = this.capturer.outputPath
-            this.capturer.release()
+            this.lastPcmFile = this.recorder.pcmFilePath
+            this.lastEncodedFile = this.recorder.outputPath
+            this.recorder.release()
           })
         }
         .padding(12)

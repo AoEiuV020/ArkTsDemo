@@ -1,3 +1,3 @@
-export { AudioCapturer, CapturerState } from './AudioCapturer'
+export { AudioRecorder, RecorderState } from './AudioRecorder'
 
-export type { CapturerOptions, CapturerStateListener } from './AudioCapturer'
+export type { RecorderOptions, RecorderStateListener } from './AudioRecorder'

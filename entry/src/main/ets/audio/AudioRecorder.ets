@@ -36,11 +36,11 @@ export interface RecorderStateListener {
  * 封装音频录制的所有技术细节，提供简洁的业务接口
  */
 export class AudioRecorder {
-  private avRecorder: media.AVRecorder | undefined = undefined
-  private audioFile: fileIo.File | undefined = undefined
+  private avRecorder?: media.AVRecorder
+  private audioFile?: fileIo.File
   private currentFilePath: string = ''
   private filesDir: string
-  private listener: RecorderStateListener | undefined = undefined
+  private listener?: RecorderStateListener
   /** 录音文件扩展名 */
   private static readonly FILE_EXTENSION = '.amr'
 

@@ -42,12 +42,12 @@ export interface CapturerStateListener {
 export class AudioCapturer {
   /** 采集文件扩展名 */
   private static readonly FILE_EXTENSION = '.pcm'
-  private capturer: audio.AudioCapturer | undefined = undefined
-  private file: fs.File | undefined = undefined
+  private capturer?: audio.AudioCapturer
+  private file?: fs.File
   private bufferSize: number = 0
   private cacheDir: string
   private currentFilePath: string = ''
-  private listener: CapturerStateListener | undefined = undefined
+  private listener?: CapturerStateListener
   private readonly streamInfo: audio.AudioStreamInfo = {
     samplingRate: 16000,
     channels: 1,

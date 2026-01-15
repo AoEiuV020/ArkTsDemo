@@ -35,9 +35,9 @@ export interface PlayerStateListener {
  * 封装音频播放的所有技术细节，提供简洁的业务接口
  */
 export class AudioPlayer {
-  private avPlayer: media.AVPlayer | undefined = undefined
-  private audioFile: fileIo.File | undefined = undefined
-  private listener: PlayerStateListener | undefined = undefined
+  private avPlayer?: media.AVPlayer
+  private audioFile?: fileIo.File
+  private listener?: PlayerStateListener
   private _state: PlayerState = PlayerState.Idle
 
   /**

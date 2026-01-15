@@ -1,4 +1,5 @@
 import native from 'libaudio_recorder.so'
+import { fileIo } from '@kit.CoreFileKit'
 
 /**
  * 录音器状态
@@ -133,6 +134,29 @@ export class AudioRecorder {
     native.release()
     this.outputFilePath = ''
     this.updateState(RecorderState.Idle)
+  }
+
+  /**
+   * 删除录音文件（编码文件和对应的PCM文件）
+   * @param encodedFilePath 编码后的文件路径
+   */
+  static deleteFiles(encodedFilePath: string) {
+    // 删除编码文件
+    try {
+      fileIo.unlinkSync(encodedFilePath)
+    } catch (e) {
+      // 文件可能不存在，忽略
+    }
+    // 根据编码文件路径推算PCM文件路径并删除
+    const dotPos = encodedFilePath.lastIndexOf('.')
+    if (dotPos !== -1) {
+      const pcmPath = encodedFilePath.substring(0, dotPos) + '.pcm'
+      try {
+        fileIo.unlinkSync(pcmPath)
+      } catch (e) {
+        // 文件可能不存在，忽略
+      }
+    }
   }
 
   /**

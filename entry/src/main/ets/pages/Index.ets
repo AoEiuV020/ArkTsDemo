@@ -1,11 +1,14 @@
 import { common } from '@kit.AbilityKit'
 import { AudioRecorder, RecorderState } from 'audio_recorder'
+import { AudioPlayer, PlayerState } from '../audio/AudioPlayer'
 
 @Entry
 @Component
 struct Index {
   private recorder: AudioRecorder = new AudioRecorder()
+  private player: AudioPlayer = new AudioPlayer()
   @State private recorderState: RecorderState = RecorderState.Idle
+  @State private playerState: PlayerState = PlayerState.Idle
   @State private lastPcmFile: string = ''
   @State private lastEncodedFile: string = ''
 
@@ -18,12 +21,24 @@ struct Index {
         console.error(message)
       },
     })
+    this.player.setListener({
+      onStateChange: (state) => {
+        this.playerState = state
+      },
+      onError: (message) => {
+        console.error(message)
+      },
+    })
   }
 
   build() {
     Scroll() {
       Column() {
         Text(`录音状态: ${RecorderState[this.recorderState]}`)
+          .fontSize(16)
+          .margin(10)
+
+        Text(`播放状态: ${PlayerState[this.playerState]}`)
           .fontSize(16)
           .margin(10)
 
@@ -41,7 +56,7 @@ struct Index {
 
         Row() {
           Column() {
-            Text('初始化(AMR)').fontColor(Color.Black).fontSize(16).margin({ top: 12 })
+            Text('初始化(MP3)').fontColor(Color.Black).fontSize(16).margin({ top: 12 })
           }
           .backgroundColor(Color.White)
           .borderRadius(30)
@@ -50,8 +65,7 @@ struct Index {
           .margin({ right: 12, bottom: 12 })
           .onClick(() => {
             const cacheDir = (getContext() as common.UIAbilityContext).cacheDir
-            // 使用.amr后缀，触发AMR-WB编码，同时产出.pcm文件
-            this.recorder.init({ outputFilePath: `${cacheDir}/capture_${Date.now()}.mp3` })
+            this.recorder.init({ outputFilePath: `${cacheDir}/capture_${Date.now()}.amr` })
           })
 
           Column() {
@@ -92,6 +106,39 @@ struct Index {
             this.lastPcmFile = this.recorder.pcmFilePath
             this.lastEncodedFile = this.recorder.outputPath
             this.recorder.release()
+          })
+        }
+
+        Row() {
+          Column() {
+            Text('播放录音').fontColor(Color.Black).fontSize(16).margin({ top: 12 })
+          }
+          .backgroundColor(Color.White)
+          .borderRadius(30)
+          .width('45%')
+          .height('25%')
+          .margin({ right: 12, bottom: 12 })
+          .onClick(async () => {
+            if (this.lastEncodedFile) {
+              await this.player.play(this.lastEncodedFile)
+            }
+          })
+
+          Column() {
+            Text('删除缓存').fontColor(Color.Red).fontSize(16).margin({ top: 12 })
+          }
+          .backgroundColor(Color.White)
+          .borderRadius(30)
+          .width('45%')
+          .height('25%')
+          .margin({ bottom: 12 })
+          .onClick(async () => {
+            await this.player.release()
+            if (this.lastEncodedFile) {
+              AudioRecorder.deleteFiles(this.lastEncodedFile)
+              this.lastPcmFile = ''
+              this.lastEncodedFile = ''
+            }
           })
         }
         .padding(12)

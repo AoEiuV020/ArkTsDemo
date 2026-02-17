@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * ETS编译脚本（跨平台）
- * 调用hvigor编译，不做过滤（过滤逻辑在skill中）
+ * App打包脚本（跨平台）
+ * 调用hvigor打包release版本app
  */
 const { spawn } = require('child_process')
 const path = require('path')
@@ -40,18 +40,16 @@ const dateFile = path.join(
 const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19)
 fs.writeFileSync(dateFile, `// ${timestamp}\n`)
 
-// 运行hvigor编译
+// 运行hvigor打包
 const args = [
   hvigorPath,
   '--mode',
-  'module',
-  '-p',
-  'module=entry@default',
+  'project',
   '-p',
   'product=default',
   '-p',
-  'requiredDeviceType=phone',
-  'assembleHap',
+  'buildMode=release',
+  'assembleApp',
   '--analyze=normal',
   '--parallel',
   '--incremental',

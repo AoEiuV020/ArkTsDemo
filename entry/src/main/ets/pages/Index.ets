@@ -6,7 +6,7 @@ import { Counter } from 'library1';
 struct Index {
   @Local message: string = 'Hello World'
   private counter = new Counter();
-  @State count: number = 0;
+  @Local count: number = 0;
 
   build() {
     Column() {

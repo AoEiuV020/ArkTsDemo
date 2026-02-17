@@ -4,9 +4,9 @@ import testNapi from 'libapplication1.so';
 const DOMAIN = 0x0000;
 
 @Entry
-@Component
+@ComponentV2
 struct Index {
-  @State message: string = 'Hello World';
+  @Local message: string = 'Hello World';
 
   build() {
     Row() {

@@ -8,20 +8,20 @@ const readline = require('readline')
 const path = require('path')
 const fs = require('fs')
 
-// 检查DEVECO_HOME环境变量
-const DEVECO_HOME = process.env.DEVECO_HOME
-if (!DEVECO_HOME) {
-  console.error('❌ 未设置DEVECO_HOME环境变量')
+// 检查DEVECO_SDK_HOME环境变量
+const DEVECO_SDK_HOME = process.env.DEVECO_SDK_HOME
+if (!DEVECO_SDK_HOME) {
+  console.error('❌ 未设置DEVECO_SDK_HOME环境变量')
   process.exit(1)
 }
 
 // 确定node和hvigor路径
 const isWindows = process.platform === 'win32'
 const nodeExe = isWindows
-  ? path.join(DEVECO_HOME, 'tools', 'node', 'node.exe')
-  : path.join(DEVECO_HOME, 'tools', 'node', 'bin', 'node')
+  ? path.join(DEVECO_SDK_HOME, 'tools', 'node', 'node.exe')
+  : path.join(DEVECO_SDK_HOME, 'tools', 'node', 'bin', 'node')
 const hvigorPath = path.join(
-  DEVECO_HOME,
+  DEVECO_SDK_HOME,
   'tools',
   'hvigor',
   'bin',

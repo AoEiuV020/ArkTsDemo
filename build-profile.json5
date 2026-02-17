@@ -5,7 +5,8 @@
       {
         "name": "default",
         "signingConfig": "default",
-        "compatibleSdkVersion": "5.0.4(16)",
+        "compatibleSdkVersion": "6.0.1(21)",
+        "targetSdkVersion": "6.0.1(21)",
         "runtimeOS": "HarmonyOS",
         "buildOption": {
           "strictMode": {
@@ -76,6 +77,10 @@
     {
       "name": "library1",
       "srcPath": "./library1",
+    },
+    {
+      "name": "exampleblanklibrary",
+      "srcPath": "./packages/exampleblanklibrary",
     }
   ]
 }

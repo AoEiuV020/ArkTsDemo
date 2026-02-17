@@ -1,5 +1,27 @@
 {
-  "dependencies": {
-    "@arkts/declarations": "^0.0.15"
+  "name": "ark-ts-demo",
+  "version": "1.0.0",
+  "description": "ark-ts-demo",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "build:watch": "npm run build:watch --workspaces",
+    "test": "npm run test --workspaces",
+    "clean": "rimraf ./packages/*/dist",
+    "pretty": "prettier --write \"./**/*.{js,jsx,mjs,cjs,ts,tsx,json}\"",
+    "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.21",
+    "prettier": "^3.0.0",
+    "rimraf": "^6.0.1",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.19.4",
+    "typescript": "^5.3.3",
+    "vitest": "^3.2.4"
   }
 }

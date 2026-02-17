@@ -2,9 +2,9 @@ import { Calc, StringUtils } from 'library';
 import { Counter } from 'library1';
 
 @Entry
-@Component
+@ComponentV2
 struct Index {
-  @State message: string = 'Hello World';
+  @Local message: string = 'Hello World'
   private counter = new Counter();
   @State count: number = 0;
 

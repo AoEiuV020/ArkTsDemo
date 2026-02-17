@@ -1,0 +1,17 @@
+{
+  "name": "exampleblanklibrary",
+  "version": "1.0.0",
+  "description": "exampleblanklibrary",
+  "main": "index.ts",
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "test": "vitest",
+    "pretty": "prettier --write \"./**/*.{js,jsx,mjs,cjs,ts,tsx,json}\""
+  },
+  "devDependencies": {
+    "@types/node": "*",
+    "vitest": "*"
+  },
+  "dependencies": {}
+}

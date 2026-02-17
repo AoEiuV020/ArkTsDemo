@@ -19,7 +19,7 @@ if (!DEVECO_HOME) {
 const isWindows = process.platform === 'win32'
 const nodeExe = isWindows
   ? path.join(DEVECO_HOME, 'tools', 'node', 'node.exe')
-  : path.join(DEVECO_HOME, 'tools', 'node', 'node')
+  : path.join(DEVECO_HOME, 'tools', 'node', 'bin', 'node')
 const hvigorPath = path.join(
   DEVECO_HOME,
   'tools',

@@ -1,4 +1,4 @@
-import router from '@ohos.router';
+import router from '@ohos.router'
 
 @Entry
 @ComponentV2
@@ -76,6 +76,16 @@ struct Index {
         .onClick(() => {
           router.pushUrl({
             url: 'pages/RepeatVirtualScrollTestPage'
+          })
+        })
+
+      Button('Repeat ri.item 测试')
+        .width(200)
+        .height(50)
+        .margin({ top: 20 })
+        .onClick(() => {
+          router.pushUrl({
+            url: 'pages/RepeatItemTestPage',
           })
         })
     }

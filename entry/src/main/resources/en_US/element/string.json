@@ -1,0 +1,12 @@
+{
+  "string": [
+    {
+      "name": "language_probe_title",
+      "value": "Language Persistence Probe"
+    },
+    {
+      "name": "language_probe_sample",
+      "value": "Resource string: English"
+    }
+  ]
+}

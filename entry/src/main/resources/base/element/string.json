@@ -11,6 +11,14 @@
     {
       "name": "EntryAbility_label",
       "value": "ArkTsDemo"
+    },
+    {
+      "name": "language_probe_title",
+      "value": "语言持久化验证"
+    },
+    {
+      "name": "language_probe_sample",
+      "value": "资源字符串：简体中文"
     }
   ]
 }

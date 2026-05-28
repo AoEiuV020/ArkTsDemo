@@ -1,0 +1,12 @@
+{
+  "string": [
+    {
+      "name": "language_probe_title",
+      "value": "語言持久化驗證"
+    },
+    {
+      "name": "language_probe_sample",
+      "value": "資源字串：繁體中文"
+    }
+  ]
+}
